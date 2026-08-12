@@ -1,0 +1,261 @@
+// Stólpi — gagnalíkan. Beinn flutningur á söfnunum sem eru skjalfest í
+// design_handoff_stolpi_kerfi/README.md ("State Management") og staðfest í
+// seed()-fallinu í Stólpi Kerfi.dc.html (línur 1001-1136).
+//
+// SQLite hefur hvorki innbyggð fylki né enum — listar (equipment, unitIds,
+// requiredEquipment) eru geymdir sem JSON-strengir og af-/raðgreindir í API-laginu;
+// stöðugildi eru String og staðfest gegn shared/src/enums.ts.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Unit {
+  id         String   @id @default(cuid())
+  code       String   @unique
+  sizeM2     Float
+  hasToilet  Boolean  @default(false)
+  status     String   @default("available")
+  location   String
+  equipment  String   @default("[]") // JSON string[]
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  damages     Damage[]
+  maintenance MaintenanceEntry[]
+  requests    ServiceRequest[]
+
+  @@index([status])
+}
+
+model Project {
+  id                String   @id @default(cuid())
+  name              String
+  customerId        String?
+  customer          Customer? @relation(fields: [customerId], references: [id])
+  unitsNeeded       Int      @default(1)
+  needsToilet       Boolean  @default(false)
+  minSizeM2         Float?
+  location          String?
+  startDate         String?
+  endDate           String?
+  status            String   @default("planning")
+  requiredEquipment String   @default("[]") // JSON string[]
+
+  requests  ServiceRequest[]
+  contracts Contract[]
+  quotes    Quote[]
+  damages   Damage[]
+}
+
+model Customer {
+  id         String  @id @default(cuid())
+  name       String
+  kennitala  String?
+  phone      String?
+  email      String?
+  address    String?
+  notes      String?
+
+  units     Unit[]
+  projects  Project[]
+  contacts  Contact[]
+  deals     Deal[]
+  activities Activity[]
+  contracts Contract[]
+  quotes    Quote[]
+  invoices  Invoice[]
+}
+
+model Contact {
+  id         String   @id @default(cuid())
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  name       String
+  title      String?
+  email      String?
+  phone      String?
+
+  deals      Deal[]
+  activities Activity[]
+}
+
+model Deal {
+  id            String   @id @default(cuid())
+  title         String
+  customerId    String?
+  customer      Customer? @relation(fields: [customerId], references: [id])
+  contactId     String?
+  contact       Contact? @relation(fields: [contactId], references: [id])
+  stage         String   @default("nytt")
+  valueIsk      Float    @default(0)
+  source        String?
+  expectedClose String?
+  owner         String
+  nextStep      String?
+  notes         String?
+}
+
+model Activity {
+  id         String   @id @default(cuid())
+  type       String   @default("simtal")
+  subject    String
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  contactId  String?
+  contact    Contact? @relation(fields: [contactId], references: [id])
+  dueDate    String?
+  done       Boolean  @default(false)
+  notes      String?
+}
+
+model SalesTarget {
+  id        String @id @default(cuid())
+  owner     String
+  year      Int
+  month     Int
+  targetIsk Float
+
+  @@index([owner, year, month])
+}
+
+model ServiceRequest {
+  id          String   @id @default(cuid())
+  title       String
+  type        String   @default("standsetning")
+  unitId      String?
+  unit        Unit?    @relation(fields: [unitId], references: [id])
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+  status      String   @default("ny")
+  priority    String   @default("medal")
+  description String?
+  assignedTo  String?
+  dueDate     String?
+}
+
+model Contract {
+  id         String   @id @default(cuid())
+  number     String   @unique
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  projectId  String?
+  project    Project? @relation(fields: [projectId], references: [id])
+  unitIds    String   @default("[]") // JSON string[]
+  startDate  String?
+  endDate    String?
+  monthlyIsk Float    @default(0)
+  status     String   @default("drog")
+  notes      String?
+
+  invoices Invoice[]
+}
+
+model Quote {
+  id         String   @id @default(cuid())
+  number     String   @unique
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  projectId  String?
+  project    Project? @relation(fields: [projectId], references: [id])
+  totalIsk   Float    @default(0)
+  validTo    String?
+  status     String   @default("drog")
+  notes      String?
+}
+
+model PriceItem {
+  id          String  @id @default(cuid())
+  name        String
+  monthlyIsk  Float
+  deliveryIsk Float
+  minMonths   Int     @default(1)
+  note        String?
+}
+
+model Invoice {
+  id             String   @id @default(cuid())
+  number         String   @unique
+  customerId     String?
+  customer       Customer? @relation(fields: [customerId], references: [id])
+  contractNumber String?
+  contract       Contract? @relation(fields: [contractNumber], references: [number])
+  period         String
+  units          Int      @default(1)
+  amountIsk      Float    @default(0)
+  status         String   @default("drog")
+  bcRef          String?
+
+  @@index([period])
+}
+
+model Damage {
+  id          String   @id @default(cuid())
+  unitId      String
+  unit        Unit     @relation(fields: [unitId], references: [id])
+  date        String
+  description String
+  cause       String
+  responsible String?
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+  costIsk     Float    @default(0)
+  rebilled    Boolean  @default(false)
+  status      String   @default("skrad")
+}
+
+model MaintenanceEntry {
+  id      String  @id @default(cuid())
+  unitId  String
+  unit    Unit    @relation(fields: [unitId], references: [id])
+  date    String
+  type    String
+  note    String?
+  costIsk Float   @default(0)
+  by      String?
+}
+
+model Doc {
+  id   String @id @default(cuid())
+  ref  String // free-form reference to a Unit/Request id etc.
+  name String
+  kind String
+  size String
+  date String
+
+  @@index([ref])
+}
+
+model User {
+  id        String  @id @default(cuid())
+  name      String
+  email     String  @unique
+  role      String  @default("lesandi")
+  active    Boolean @default(true)
+  lastLogin String?
+}
+
+// Singleton row (id fixed to "singleton") for the Business Central connection panel.
+model BcSettings {
+  id          String  @id @default("singleton")
+  connected   Boolean @default(true)
+  environment String  @default("Production")
+  company     String  @default("Stólpi ehf.")
+  tenant      String  @default("")
+  schedule    String  @default("1. hvers mánaðar kl. 06:00")
+  autopost    Boolean @default(false)
+}
+
+model BcLogEntry {
+  id      String @id @default(cuid())
+  title   String
+  time    String
+  status  String
+  tone    String @default("ok")
+  created DateTime @default(now())
+}

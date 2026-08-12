@@ -1,0 +1,23 @@
+{
+  "name": "stolpi-kerfi",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=@stolpi/api",
+    "dev:web": "npm run dev --workspace=@stolpi/web",
+    "dev:vettvangur": "npm run dev --workspace=@stolpi/vettvangur",
+    "build": "npm run build --workspaces --if-present",
+    "db:seed": "npm run db:seed --workspace=@stolpi/api"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "esbuild@0.21.5": true,
+    "@prisma/client@6.19.3": true,
+    "prisma@6.19.3": true,
+    "@prisma/engines@6.19.3": true
+  }
+}
