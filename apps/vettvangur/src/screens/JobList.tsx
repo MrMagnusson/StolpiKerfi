@@ -1,0 +1,102 @@
+// Ported from Screen A "Verk dagsins", Stólpi Vettvangur.dc.html lines 22-61 & 329-352.
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { REQ_TYPE, TONES, INTAKE_STEPS, type Tone } from "@stolpi/shared";
+import { useRequests, type VettvangurRequest } from "../api.js";
+import { loadProgress } from "../progress.js";
+
+type FilterId = "today" | "all" | "done";
+const FILTERS: [FilterId, string][] = [
+  ["today", "Í dag"],
+  ["all", "Allar opnar"],
+  ["done", "Lokið"],
+];
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export function JobList() {
+  const { data: requests = [], isLoading } = useRequests();
+  const [filter, setFilter] = useState<FilterId>("today");
+  const nav = useNavigate();
+  const today = todayIso();
+
+  const open = requests.filter((r) => r.status === "ny" || r.status === "i_vinnslu");
+  const sets: Record<FilterId, VettvangurRequest[]> = {
+    today: open.filter((r) => !r.dueDate || r.dueDate <= today),
+    all: open,
+    done: requests.filter((r) => r.status === "lokid" || r.status === "tilbuin"),
+  };
+  const list = sets[filter];
+
+  return (
+    <section style={{ display: "flex", flexDirection: "column", minHeight: 844 }}>
+      <header style={{ padding: "20px 18px 14px", borderBottom: "1px solid var(--color-divider)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--color-accent-700)" }}>Stólpi · Vettvangur</div>
+          <h1 style={{ fontSize: 27, margin: "3px 0 0", lineHeight: 1 }}>Verk dagsins</h1>
+        </div>
+        <div className="blueprint" style={{ width: 38, height: 38, flex: "none", display: "grid", placeItems: "center", fontFamily: "var(--font-heading)", fontSize: 14 }}>
+          SV
+          <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+        </div>
+      </header>
+
+      <div style={{ display: "flex", gap: 8, padding: "14px 18px 4px", overflowX: "auto" }}>
+        {FILTERS.map(([id, label]) => {
+          const active = filter === id;
+          return (
+            <button
+              key={id}
+              onClick={() => setFilter(id)}
+              style={{ padding: "9px 14px", minHeight: 44, border: `1px solid ${active ? "var(--color-accent)" : "var(--color-divider)"}`, background: active ? "var(--color-accent)" : "none", color: active ? "var(--color-bg)" : "var(--color-text)", cursor: "pointer", font: "inherit", fontSize: 14, whiteSpace: "nowrap" }}
+            >
+              {label} <span style={{ opacity: 0.65 }}>{sets[id].length}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: "14px 18px 30px" }}>
+        {isLoading ? <div style={{ opacity: 0.6, padding: "16px 0" }}>Hleð…</div> : null}
+        {!isLoading && list.length === 0 ? (
+          <div style={{ border: "1px dashed var(--color-divider)", padding: "28px 16px", textAlign: "center", fontSize: 14, opacity: 0.6 }}>Engin verk í þessum flokki.</div>
+        ) : null}
+        {list.map((r) => {
+          const progress = loadProgress(r.id);
+          const at = r.status === "lokid" ? 4 : progress.step;
+          const overdue = r.dueDate && r.dueDate < today && r.status !== "lokid";
+          const tone: Tone = r.status === "lokid" ? "ok" : overdue ? "bad" : r.priority === "ha" ? "warn" : "info";
+          const statusLabel = r.status === "lokid" ? "Lokið" : overdue ? "Yfir tíma" : r.priority === "ha" ? "Forgangur" : "Í vinnslu";
+          return (
+            <button
+              key={r.id}
+              className="blueprint"
+              onClick={() => nav(`/verk/${r.id}`)}
+              style={{ padding: "14px 15px", background: "none", border: "1px solid var(--color-divider)", cursor: "pointer", textAlign: "left", font: "inherit", display: "flex", flexDirection: "column", gap: 9 }}
+            >
+              <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+              <span style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
+                <span style={{ fontFamily: "var(--font-heading)", fontSize: 24, letterSpacing: ".03em", lineHeight: 1 }}>{r.unit?.code ?? "—"}</span>
+                <span className="tag" style={{ background: TONES[tone].bg, color: TONES[tone].fg }}>{statusLabel}</span>
+              </span>
+              <span style={{ fontSize: 15, lineHeight: 1.3 }}>{r.title}</span>
+              <span style={{ fontSize: 13, opacity: 0.65 }}>
+                {REQ_TYPE[r.type as keyof typeof REQ_TYPE]} · {r.unit?.sizeM2 ? `${r.unit.sizeM2} m² · ` : ""}{r.unit?.location ?? ""}
+              </span>
+              <span style={{ display: "flex", gap: 5, paddingTop: 8, borderTop: "1px solid var(--color-divider)", width: "100%" }}>
+                {INTAKE_STEPS.map((s, i) => (
+                  <span key={s.key} style={{ flex: 1, height: 6, background: i < at ? "var(--color-accent)" : "var(--color-neutral-300)" }} />
+                ))}
+              </span>
+              <span style={{ fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", opacity: 0.55 }}>
+                {r.status === "lokid" ? "Ferli lokið" : at === 0 ? "Ekki hafið" : `Skref ${at} af 4 lokið`}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
