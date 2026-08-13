@@ -6,7 +6,12 @@ import { Projects } from "./pages/Projects.js";
 import { Requests } from "./pages/Requests.js";
 import { Contracts } from "./pages/Contracts.js";
 import { DetailPage } from "./pages/Detail/DetailPage.js";
-import { ComingSoon } from "./pages/ComingSoon.js";
+import { Match } from "./pages/Match.js";
+import { Sala } from "./pages/Sala.js";
+import { Pricing } from "./pages/Pricing.js";
+import { Billing } from "./pages/Billing.js";
+import { BcIntegration } from "./pages/BcIntegration.js";
+import { Users } from "./pages/Users.js";
 
 export function App() {
   return (
@@ -19,14 +24,15 @@ export function App() {
           <Route path="/verkefni" element={<Projects />} />
           <Route path="/beidnir" element={<Requests />} />
           <Route path="/samningar" element={<Contracts />} />
-          <Route path="/porun" element={<ComingSoon title="Pörun" />} />
-          <Route path="/sala" element={<ComingSoon title="Sölukerfi" />} />
-          <Route path="/verdskra" element={<ComingSoon title="Verðskrá & tilboð" />} />
-          <Route path="/reikningagerd" element={<ComingSoon title="Reikningagerð" />} />
-          <Route path="/bc-tenging" element={<ComingSoon title="BC-tenging" />} />
-          <Route path="/notendur" element={<ComingSoon title="Notendur & réttindi" />} />
+          <Route path="/porun" element={<Match />} />
+          <Route path="/sala" element={<Sala />} />
+          <Route path="/verdskra" element={<Pricing />} />
+          <Route path="/reikningagerd" element={<Billing />} />
+          <Route path="/bc-tenging" element={<BcIntegration />} />
+          <Route path="/notendur" element={<Users />} />
           <Route path="/detail/:kind/new" element={<DetailPage isNew />} />
           <Route path="/detail/:kind/:id" element={<DetailPage isNew={false} />} />
+          <Route path="*" element={<Dashboard />} />
         </Routes>
       </main>
     </div>

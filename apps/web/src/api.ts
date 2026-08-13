@@ -67,4 +67,12 @@ export function useMatch(projectId: string | undefined) {
   });
 }
 
+export function useSalesPlan(owner: string) {
+  return useQuery({ queryKey: ["sales-plan", owner], queryFn: () => request<any>(`/sales/plan?owner=${encodeURIComponent(owner)}`) });
+}
+
+export function useSalesPipeline(owner: string) {
+  return useQuery({ queryKey: ["sales-pipeline", owner], queryFn: () => request<any>(`/sales/pipeline?owner=${encodeURIComponent(owner)}`) });
+}
+
 export { request };

@@ -34,7 +34,14 @@ salesRouter.get("/plan", async (req, res) => {
 
   res.json({
     rows: rows.map((r) => ({ ...r, targetLabel: short(r.target), wonLabel: short(r.won), forecastLabel: short(r.forecast) })),
-    total: { ...tot, targetLabel: short(tot.target), wonLabel: short(tot.won), forecastLabel: short(tot.won + tot.pipe) },
+    total: {
+      ...tot,
+      gap: tot.won - tot.target,
+      pct: tot.target ? Math.round((tot.won / tot.target) * 100) : 0,
+      targetLabel: short(tot.target),
+      wonLabel: short(tot.won),
+      forecastLabel: short(tot.won + tot.pipe),
+    },
   });
 });
 
