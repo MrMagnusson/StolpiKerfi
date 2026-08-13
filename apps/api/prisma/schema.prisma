@@ -5,6 +5,11 @@
 // SQLite hefur hvorki innbyggð fylki né enum — listar (equipment, unitIds,
 // requiredEquipment) eru geymdir sem JSON-strengir og af-/raðgreindir í API-laginu;
 // stöðugildi eru String og staðfest gegn shared/src/enums.ts.
+//
+// Allar tengingar eru `onDelete: Restrict` (skýrt tilgreint, ekki Prisma-sjálfgefið) —
+// Prisma sjálfgefur annars hljóðlaust `SetNull` á valfrjálsar tengingar, sem myndi
+// aftengja t.d. samning frá viðskiptavini án viðvörunar við eyðingu. Villuboð API-sins
+// (errorHandler.ts, P2003) segja notanda skýrt að eyðing sé blokkeruð vegna tengdra gagna.
 
 generator client {
   provider = "prisma-client-js"
@@ -24,7 +29,7 @@ model Unit {
   location   String
   equipment  String   @default("[]") // JSON string[]
   customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id])
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
 
   damages     Damage[]
   maintenance MaintenanceEntry[]
@@ -37,7 +42,7 @@ model Project {
   id                String   @id @default(cuid())
   name              String
   customerId        String?
-  customer          Customer? @relation(fields: [customerId], references: [id])
+  customer          Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
   unitsNeeded       Int      @default(1)
   needsToilet       Boolean  @default(false)
   minSizeM2         Float?
@@ -75,7 +80,7 @@ model Customer {
 model Contact {
   id         String   @id @default(cuid())
   customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id])
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
   name       String
   title      String?
   email      String?
@@ -89,9 +94,9 @@ model Deal {
   id            String   @id @default(cuid())
   title         String
   customerId    String?
-  customer      Customer? @relation(fields: [customerId], references: [id])
+  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
   contactId     String?
-  contact       Contact? @relation(fields: [contactId], references: [id])
+  contact       Contact? @relation(fields: [contactId], references: [id], onDelete: Restrict)
   stage         String   @default("nytt")
   valueIsk      Float    @default(0)
   source        String?
@@ -106,9 +111,9 @@ model Activity {
   type       String   @default("simtal")
   subject    String
   customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id])
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
   contactId  String?
-  contact    Contact? @relation(fields: [contactId], references: [id])
+  contact    Contact? @relation(fields: [contactId], references: [id], onDelete: Restrict)
   dueDate    String?
   done       Boolean  @default(false)
   notes      String?
@@ -129,9 +134,9 @@ model ServiceRequest {
   title       String
   type        String   @default("standsetning")
   unitId      String?
-  unit        Unit?    @relation(fields: [unitId], references: [id])
+  unit        Unit?    @relation(fields: [unitId], references: [id], onDelete: Restrict)
   projectId   String?
-  project     Project? @relation(fields: [projectId], references: [id])
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Restrict)
   status      String   @default("ny")
   priority    String   @default("medal")
   description String?
@@ -143,9 +148,9 @@ model Contract {
   id         String   @id @default(cuid())
   number     String   @unique
   customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id])
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
   projectId  String?
-  project    Project? @relation(fields: [projectId], references: [id])
+  project    Project? @relation(fields: [projectId], references: [id], onDelete: Restrict)
   unitIds    String   @default("[]") // JSON string[]
   startDate  String?
   endDate    String?
@@ -160,9 +165,9 @@ model Quote {
   id         String   @id @default(cuid())
   number     String   @unique
   customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id])
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
   projectId  String?
-  project    Project? @relation(fields: [projectId], references: [id])
+  project    Project? @relation(fields: [projectId], references: [id], onDelete: Restrict)
   totalIsk   Float    @default(0)
   validTo    String?
   status     String   @default("drog")
@@ -182,9 +187,9 @@ model Invoice {
   id             String   @id @default(cuid())
   number         String   @unique
   customerId     String?
-  customer       Customer? @relation(fields: [customerId], references: [id])
+  customer       Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
   contractNumber String?
-  contract       Contract? @relation(fields: [contractNumber], references: [number])
+  contract       Contract? @relation(fields: [contractNumber], references: [number], onDelete: Restrict)
   period         String
   units          Int      @default(1)
   amountIsk      Float    @default(0)
@@ -197,13 +202,13 @@ model Invoice {
 model Damage {
   id          String   @id @default(cuid())
   unitId      String
-  unit        Unit     @relation(fields: [unitId], references: [id])
+  unit        Unit     @relation(fields: [unitId], references: [id], onDelete: Restrict)
   date        String
   description String
   cause       String
   responsible String?
   projectId   String?
-  project     Project? @relation(fields: [projectId], references: [id])
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Restrict)
   costIsk     Float    @default(0)
   rebilled    Boolean  @default(false)
   status      String   @default("skrad")
@@ -212,7 +217,7 @@ model Damage {
 model MaintenanceEntry {
   id      String  @id @default(cuid())
   unitId  String
-  unit    Unit    @relation(fields: [unitId], references: [id])
+  unit    Unit    @relation(fields: [unitId], references: [id], onDelete: Restrict)
   date    String
   type    String
   note    String?

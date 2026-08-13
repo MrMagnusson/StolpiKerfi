@@ -5,16 +5,20 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db.js";
 import { iso } from "../util.js";
+import { asyncHandler } from "../asyncHandler.js";
 
 export const vettvangurRouter = Router();
 
-vettvangurRouter.get("/requests", async (_req, res) => {
-  const requests = await prisma.serviceRequest.findMany({
-    where: { status: { in: ["ny", "i_vinnslu", "tilbuin", "lokid"] } },
-    include: { unit: true },
-  });
-  res.json(requests);
-});
+vettvangurRouter.get(
+  "/requests",
+  asyncHandler(async (_req, res) => {
+    const requests = await prisma.serviceRequest.findMany({
+      where: { status: { in: ["ny", "i_vinnslu", "tilbuin", "lokid"] } },
+      include: { unit: true },
+    });
+    res.json(requests);
+  }),
+);
 
 const completeSchema = z.object({
   location: z.string().min(1),
@@ -29,35 +33,39 @@ const completeSchema = z.object({
     .optional(),
 });
 
-vettvangurRouter.post("/requests/:id/complete", async (req, res) => {
-  const parsed = completeSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+vettvangurRouter.post(
+  "/requests/:id/complete",
+  asyncHandler(async (req, res) => {
+    const parsed = completeSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const request = await prisma.serviceRequest.findUnique({ where: { id: req.params.id } });
-  if (!request || !request.unitId) return res.status(404).json({ error: "Beiðni fannst ekki" });
+    const request = await prisma.serviceRequest.findUnique({ where: { id: req.params.id } });
+    if (!request || !request.unitId) return res.status(404).json({ error: "Beiðni fannst ekki" });
+    if (request.status === "lokid") return res.status(409).json({ error: "Beiðni er þegar lokið." });
 
-  const { location, damage } = parsed.data;
+    const { location, damage } = parsed.data;
 
-  const [unit, updatedRequest] = await prisma.$transaction([
-    prisma.unit.update({ where: { id: request.unitId }, data: { status: "available", location } }),
-    prisma.serviceRequest.update({ where: { id: request.id }, data: { status: "lokid" } }),
-  ]);
+    const [unit, updatedRequest] = await prisma.$transaction([
+      prisma.unit.update({ where: { id: request.unitId }, data: { status: "available", location } }),
+      prisma.serviceRequest.update({ where: { id: request.id }, data: { status: "lokid" } }),
+    ]);
 
-  const damageRow = damage
-    ? await prisma.damage.create({
-        data: {
-          unitId: request.unitId,
-          date: iso(0),
-          description: damage.description,
-          cause: damage.cause,
-          responsible: damage.responsible ?? null,
-          projectId: request.projectId,
-          costIsk: damage.costIsk,
-          rebilled: damage.cause === "vidskiptavinur",
-          status: "skrad",
-        },
-      })
-    : null;
+    const damageRow = damage
+      ? await prisma.damage.create({
+          data: {
+            unitId: request.unitId,
+            date: iso(0),
+            description: damage.description,
+            cause: damage.cause,
+            responsible: damage.responsible ?? null,
+            projectId: request.projectId,
+            costIsk: damage.costIsk,
+            rebilled: damage.cause === "vidskiptavinur",
+            status: "skrad",
+          },
+        })
+      : null;
 
-  res.json({ unit, request: updatedRequest, damage: damageRow });
-});
+    res.json({ unit, request: updatedRequest, damage: damageRow });
+  }),
+);

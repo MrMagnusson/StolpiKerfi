@@ -19,21 +19,32 @@ export function BcIntegration() {
   const { data: settings } = useQuery({ queryKey: ["bc-settings"], queryFn: () => request<any>("/bc/settings") });
   const { data: log = [] } = useQuery({ queryKey: ["bc-log"], queryFn: () => request<any[]>("/bc/log") });
 
-  const setField = (key: string, value: unknown) => {
+  const setField = async (key: string, value: unknown) => {
     if (!settings) return;
-    request("/bc/settings", { method: "PUT", body: JSON.stringify({ ...settings, [key]: value }) }).then(() => {
+    try {
+      await request("/bc/settings", { method: "PUT", body: JSON.stringify({ ...settings, [key]: value }) });
       qc.invalidateQueries({ queryKey: ["bc-settings"] });
-    });
+    } catch (e) {
+      alert((e as Error).message);
+    }
   };
 
   const test = async () => {
-    await request("/bc/test", { method: "POST" });
-    qc.invalidateQueries({ queryKey: ["bc-log"] });
+    try {
+      await request("/bc/test", { method: "POST" });
+      qc.invalidateQueries({ queryKey: ["bc-log"] });
+    } catch (e) {
+      alert((e as Error).message);
+    }
   };
   const sync = async () => {
-    await request("/bc/sync", { method: "POST" });
-    qc.invalidateQueries({ queryKey: ["bc-log"] });
-    qc.invalidateQueries({ queryKey: ["invoices"] });
+    try {
+      await request("/bc/sync", { method: "POST" });
+      qc.invalidateQueries({ queryKey: ["bc-log"] });
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+    } catch (e) {
+      alert((e as Error).message);
+    }
   };
 
   if (!settings) {

@@ -10,6 +10,7 @@ import { billingRouter } from "./routes/billing.js";
 import { bcRouter } from "./routes/bc.js";
 import { vettvangurRouter } from "./routes/vettvangur.js";
 import { uploadsRouter } from "./routes/uploads.js";
+import { errorHandler } from "./errorHandler.js";
 
 const app = express();
 app.use(cors());
@@ -30,6 +31,9 @@ app.use("/api/vettvangur", vettvangurRouter);
 app.use("/api/uploads", uploadsRouter);
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
+
+app.use("/api", (_req, res) => res.status(404).json({ error: "Endapunktur fannst ekki" }));
+app.use(errorHandler);
 
 const port = Number(process.env.PORT) || 4000;
 app.listen(port, () => {

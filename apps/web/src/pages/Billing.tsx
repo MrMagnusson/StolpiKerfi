@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Btn, BlueprintBox, DataTable, Select, StatCard, Tag, type Column } from "@stolpi/ui";
 import { INVOICE_STATUS, MONTHS, short, type Invoice } from "@stolpi/shared";
 import { PageHeader } from "../layout/PageHeader.js";
-import { useList } from "../api.js";
+import { request, useList } from "../api.js";
 
 const BC_MAPPING = [
   { from: "Viðskiptavinur + kennitala", to: "Customer No." },
@@ -41,20 +41,32 @@ export function Billing() {
   const unsent = invoices.filter((i) => i.status !== "sendur" && i.status !== "greiddur");
 
   const runBilling = async () => {
-    await fetch("/api/billing/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ period }) });
-    qc.invalidateQueries({ queryKey: ["invoices"] });
+    try {
+      await request("/billing/run", { method: "POST", body: JSON.stringify({ period }) });
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+    } catch (e) {
+      alert((e as Error).message);
+    }
   };
 
   const exportBC = async () => {
-    const res = await fetch("/api/billing/export-bc", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ period }) });
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `BC-leiga-${period}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    qc.invalidateQueries({ queryKey: ["invoices"] });
+    try {
+      const res = await fetch("/api/billing/export-bc", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ period }) });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(typeof body.error === "string" ? body.error : "Ekki tókst að flytja út.");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `BC-leiga-${period}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+    } catch (e) {
+      alert((e as Error).message);
+    }
   };
 
   const columns: Column<Invoice>[] = [

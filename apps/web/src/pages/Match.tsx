@@ -23,9 +23,13 @@ export function Match() {
   const qc = useQueryClient();
 
   const reserve = async (unitId: string) => {
-    await request(`/match/${selected}/reserve/${unitId}`, { method: "POST" });
-    qc.invalidateQueries({ queryKey: ["match", selected] });
-    qc.invalidateQueries({ queryKey: ["units"] });
+    try {
+      await request(`/match/${selected}/reserve/${unitId}`, { method: "POST" });
+      qc.invalidateQueries({ queryKey: ["match", selected] });
+      qc.invalidateQueries({ queryKey: ["units"] });
+    } catch (e) {
+      alert((e as Error).message);
+    }
   };
 
   const need = project?.unitsNeeded || match?.eligible.length || 0;

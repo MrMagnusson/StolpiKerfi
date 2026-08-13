@@ -43,17 +43,25 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
   const fields = fieldConfig(kind, { customers, projects, units, contacts });
 
   const save = async () => {
-    if (isNew) {
-      const created = await create.mutateAsync(draft);
-      nav(`/detail/${kind}/${(created as any).id}`);
-    } else if (id) {
-      await update.mutateAsync({ id, data: draft });
+    try {
+      if (isNew) {
+        const created = await create.mutateAsync(draft);
+        nav(`/detail/${kind}/${(created as any).id}`);
+      } else if (id) {
+        await update.mutateAsync({ id, data: draft });
+      }
+    } catch {
+      // the QueryClient's default mutation onError already alerted the user
     }
   };
   const del = async () => {
-    if (id) {
+    if (!id) return;
+    if (!confirm(`Eyða ${title}? Þessu er ekki hægt að breyta til baka.`)) return;
+    try {
       await remove.mutateAsync(id);
       nav(-1 as any);
+    } catch {
+      // the QueryClient's default mutation onError already alerted the user
     }
   };
 

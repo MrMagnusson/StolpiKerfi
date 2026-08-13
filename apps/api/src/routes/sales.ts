@@ -2,6 +2,7 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { DEAL_STAGES, STAGE_PROB, MONTHS, weightedDealValue, short, type DealStage } from "@stolpi/shared";
+import { asyncHandler } from "../asyncHandler.js";
 
 export const salesRouter = Router();
 
@@ -11,7 +12,9 @@ function inYear(dateStr: string | null, year: number, month: number): boolean {
   return Number(y) === year && Number(m) === month;
 }
 
-salesRouter.get("/plan", async (req, res) => {
+salesRouter.get(
+  "/plan",
+  asyncHandler(async (req, res) => {
   const owner = (req.query.owner as string) || "all";
   const deals = await prisma.deal.findMany();
   const targets = await prisma.salesTarget.findMany();
@@ -40,12 +43,15 @@ salesRouter.get("/plan", async (req, res) => {
       pct: tot.target ? Math.round((tot.won / tot.target) * 100) : 0,
       targetLabel: short(tot.target),
       wonLabel: short(tot.won),
-      forecastLabel: short(tot.won + tot.pipe),
-    },
-  });
-});
+        forecastLabel: short(tot.won + tot.pipe),
+      },
+    });
+  }),
+);
 
-salesRouter.get("/pipeline", async (req, res) => {
+salesRouter.get(
+  "/pipeline",
+  asyncHandler(async (req, res) => {
   const owner = (req.query.owner as string) || "all";
   const deals = await prisma.deal.findMany();
   const customers = await prisma.customer.findMany();
@@ -68,6 +74,7 @@ salesRouter.get("/pipeline", async (req, res) => {
         weighted: st !== "unnid" && st !== "tapad" ? short(weightedDealValue(d.valueIsk, d.stage as DealStage)) : null,
       })),
     };
-  });
-  res.json({ stageCols });
-});
+    });
+    res.json({ stageCols });
+  }),
+);

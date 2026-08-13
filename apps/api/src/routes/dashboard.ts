@@ -3,10 +3,13 @@ import { Router } from "express";
 import { prisma } from "../db.js";
 import { UNIT_STATUS, CONTRACT_STATUS, DEAL_STAGES, REQ_TYPE, ACTIVITY_TYPE, short } from "@stolpi/shared";
 import { iso } from "../util.js";
+import { asyncHandler } from "../asyncHandler.js";
 
 export const dashboardRouter = Router();
 
-dashboardRouter.get("/", async (_req, res) => {
+dashboardRouter.get(
+  "/",
+  asyncHandler(async (_req, res) => {
   const [units, contracts, deals, activities, requests, customers] = await Promise.all([
     prisma.unit.findMany(),
     prisma.contract.findMany(),
@@ -111,5 +114,6 @@ dashboardRouter.get("/", async (_req, res) => {
       tone: CONTRACT_STATUS[c.status as keyof typeof CONTRACT_STATUS].tone,
     }));
 
-  res.json({ dashStats, attention: attention.slice(0, 7), fleetRows, stageRows, contractSoon });
-});
+    res.json({ dashStats, attention: attention.slice(0, 7), fleetRows, stageRows, contractSoon });
+  }),
+);

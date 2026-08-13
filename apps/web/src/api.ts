@@ -2,6 +2,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const BASE = "/api";
 
+/** Formats the API's error shape (a plain string, or a zod .flatten() object) into one readable line. */
+function formatApiError(error: unknown): string {
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object") {
+    const flat = error as { formErrors?: string[]; fieldErrors?: Record<string, string[]> };
+    const parts = [...(flat.formErrors ?? []), ...Object.values(flat.fieldErrors ?? {}).flat()];
+    if (parts.length) return parts.join(" · ");
+  }
+  return "Óþekkt villa";
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...init,
@@ -9,7 +20,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error ? JSON.stringify(body.error) : `${res.status} ${res.statusText}`);
+    throw new Error(body.error ? formatApiError(body.error) : `${res.status} ${res.statusText}`);
   }
   if (res.status === 204) return undefined as T;
   return res.json();
