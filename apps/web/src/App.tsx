@@ -1,5 +1,7 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { RailNav } from "./layout/RailNav.js";
+import "./layout/layout.css";
 import { Dashboard } from "./pages/Dashboard.js";
 import { Units } from "./pages/Units.js";
 import { Projects } from "./pages/Projects.js";
@@ -14,9 +16,23 @@ import { BcIntegration } from "./pages/BcIntegration.js";
 import { Users } from "./pages/Users.js";
 
 export function App() {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => setDrawerOpen(false), [location.pathname]);
+
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "var(--color-bg)", color: "var(--color-text)", fontFamily: "var(--font-body)", fontSize: 14 }}>
-      <RailNav />
+      <button
+        className="rail-toggle btn btn-secondary btn-icon"
+        onClick={() => setDrawerOpen((v) => !v)}
+        aria-label="Opna valmynd"
+        style={{ position: "fixed", top: 14, left: 14, zIndex: 60 }}
+      >
+        ☰
+      </button>
+      <div className={`rail-backdrop${drawerOpen ? " open" : ""}`} onClick={() => setDrawerOpen(false)} />
+      <RailNav open={drawerOpen} onNavigate={() => setDrawerOpen(false)} />
       <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
         <Routes>
           <Route path="/" element={<Dashboard />} />

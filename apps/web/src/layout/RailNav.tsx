@@ -11,8 +11,9 @@ interface NavGroup {
   items: NavItem[];
 }
 
-/** Sticky left rail — 242px, brand block + three grouped sections + user footer. README.md "Desktop app — screens". */
-export function RailNav() {
+/** Sticky left rail — 242px, brand block + three grouped sections + user footer. README.md "Desktop app — screens".
+ * Below ~900px it becomes a slide-in drawer (see layout.css) — `open`/`onNavigate` drive that state. */
+export function RailNav({ open = false, onNavigate }: { open?: boolean; onNavigate?: () => void }) {
   const { data: units = [] } = useList<{ id: string; status: string }>("units");
   const { data: projects = [] } = useList<{ id: string }>("projects");
   const { data: requests = [] } = useList<{ id: string; status: string }>("requests");
@@ -53,7 +54,7 @@ export function RailNav() {
   ];
 
   return (
-    <aside style={{ width: 242, flex: "none", borderRight: "1px solid var(--color-divider)", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh" }}>
+    <aside className={`rail-nav${open ? " open" : ""}`} style={{ width: 242, flex: "none", borderRight: "1px solid var(--color-divider)", display: "flex", flexDirection: "column" }}>
       <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid var(--color-divider)", display: "flex", gap: 11, alignItems: "center" }}>
         <div className="blueprint" style={{ width: 30, height: 30, flex: "none", display: "grid", placeItems: "center", background: "var(--color-accent)", color: "var(--color-bg)", fontFamily: "var(--font-heading)", fontSize: 17, lineHeight: 1 }}>
           S
@@ -73,6 +74,7 @@ export function RailNav() {
                 key={n.to}
                 to={n.to}
                 end={n.to === "/"}
+                onClick={onNavigate}
                 style={({ isActive }) => ({
                   display: "flex",
                   alignItems: "center",

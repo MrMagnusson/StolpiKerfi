@@ -1,0 +1,44 @@
+/* Responsive rail → drawer collapse under ~900px — README.md notes this was "not built in the
+   prototype"; the rest of the layout (auto-fit/auto-fill grids) already collapses on its own. */
+.rail-nav {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.rail-toggle {
+  display: none;
+}
+.rail-backdrop {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .rail-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: var(--shadow-lg);
+    background: var(--color-bg);
+  }
+  .rail-nav.open {
+    transform: translateX(0);
+  }
+  .rail-toggle {
+    display: inline-flex;
+  }
+  .rail-backdrop.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: color-mix(in srgb, var(--color-neutral-900) 45%, transparent);
+    z-index: 40;
+  }
+  /* Leave room for the fixed hamburger toggle so it doesn't sit on top of the page title. */
+  main > header {
+    padding-left: 62px !important;
+  }
+}
