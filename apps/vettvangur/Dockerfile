@@ -8,6 +8,7 @@ COPY package.json package-lock.json ./
 COPY packages ./packages
 COPY apps/vettvangur ./apps/vettvangur
 RUN npm install
+RUN npm run build --workspace=@stolpi/shared
 RUN npm run build --workspace=@stolpi/vettvangur
 
 FROM node:20-slim AS runtime

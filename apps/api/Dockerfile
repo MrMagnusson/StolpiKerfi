@@ -9,6 +9,7 @@ COPY package.json package-lock.json ./
 COPY packages ./packages
 COPY apps/api ./apps/api
 RUN npm install
+RUN npm run build --workspace=@stolpi/shared
 RUN npm run build --workspace=@stolpi/api
 
 FROM node:20-slim AS runtime
