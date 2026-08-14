@@ -2,6 +2,9 @@
 # this app's package.json to resolve @stolpi/* links) — see DEPLOY.md for the exact Railway setting.
 FROM node:20-slim AS build
 WORKDIR /repo
+# node:20-slim (Debian) has no OpenSSL by default — Prisma's query engine needs it to detect the
+# right libssl build, both to generate the client here and to run it in the runtime stage below.
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
 COPY packages ./packages
 COPY apps/api ./apps/api
@@ -10,6 +13,7 @@ RUN npm run build --workspace=@stolpi/api
 
 FROM node:20-slim AS runtime
 WORKDIR /repo
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 COPY --from=build /repo/node_modules ./node_modules
 COPY --from=build /repo/packages ./packages
