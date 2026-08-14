@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
-import { inbound, outbound } from "../serialize.js";
 import { SCHEMAS } from "../validation.js";
 import { asyncHandler } from "../asyncHandler.js";
 
@@ -38,7 +37,7 @@ export function crudRouter(kind: string): Router {
     "/",
     asyncHandler(async (_req, res) => {
       const rows = await delegate.findMany();
-      res.json(rows.map((r: Record<string, unknown>) => outbound(kind, r)));
+      res.json(rows);
     }),
   );
 
@@ -47,7 +46,7 @@ export function crudRouter(kind: string): Router {
     asyncHandler(async (req, res) => {
       const row = await delegate.findUnique({ where: { id: req.params.id } });
       if (!row) return res.status(404).json({ error: "Fannst ekki" });
-      res.json(outbound(kind, row));
+      res.json(row);
     }),
   );
 
@@ -56,8 +55,8 @@ export function crudRouter(kind: string): Router {
     asyncHandler(async (req, res) => {
       const parsed = schema.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-      const row = await delegate.create({ data: inbound(kind, parsed.data) });
-      res.status(201).json(outbound(kind, row));
+      const row = await delegate.create({ data: parsed.data });
+      res.status(201).json(row);
     }),
   );
 
@@ -66,8 +65,8 @@ export function crudRouter(kind: string): Router {
     asyncHandler(async (req, res) => {
       const parsed = schema.partial().safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-      const row = await delegate.update({ where: { id: req.params.id }, data: inbound(kind, parsed.data) });
-      res.json(outbound(kind, row));
+      const row = await delegate.update({ where: { id: req.params.id }, data: parsed.data });
+      res.json(row);
     }),
   );
 

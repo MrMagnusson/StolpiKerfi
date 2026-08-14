@@ -2,7 +2,6 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { buildMatch } from "@stolpi/shared";
-import { outbound } from "../serialize.js";
 import { asyncHandler } from "../asyncHandler.js";
 
 export const matchRouter = Router();
@@ -13,11 +12,9 @@ matchRouter.get(
     const project = await prisma.project.findUnique({ where: { id: req.params.projectId } });
     if (!project) return res.status(404).json({ error: "Verkefni fannst ekki" });
 
-    const unitsRaw = await prisma.unit.findMany();
-    const units = unitsRaw.map((u) => outbound("units", u)) as any[];
-    const projectParsed = outbound("projects", project) as any;
+    const units = await prisma.unit.findMany();
 
-    const result = buildMatch(projectParsed, units);
+    const result = buildMatch(project as any, units as any);
     res.json(result);
   }),
 );
@@ -34,6 +31,6 @@ matchRouter.post(
       where: { id: req.params.unitId },
       data: { status: "reserved", customerId: project.customerId },
     });
-    res.json(outbound("units", updated));
+    res.json(updated);
   }),
 );

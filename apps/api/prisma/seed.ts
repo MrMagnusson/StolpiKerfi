@@ -1,4 +1,4 @@
-// Seed data — ported verbatim (same customers, projects, units, deals…) from
+﻿// Seed data — ported verbatim (same customers, projects, units, deals…) from
 // seed() in Stólpi Kerfi.dc.html (lines 1001-1136), adapted to relational IDs.
 import { PrismaClient } from "@prisma/client";
 import { SALESPEOPLE } from "@stolpi/shared";
@@ -54,15 +54,15 @@ async function main() {
   ]);
 
   console.log("Sái verkefnum…");
-  const p1 = await prisma.project.create({ data: { name: "Vinnubúðir – Kárahnjúkar", customerId: verkis.id, unitsNeeded: 3, needsToilet: true, minSizeM2: 20, location: "Austurland", startDate: `${y}-09-01`, endDate: `${y}-12-15`, status: "active", requiredEquipment: JSON.stringify(["Sturta", "Hitablásari"]) } });
-  const p2 = await prisma.project.create({ data: { name: "Kaffistofa – Hvammsvirkjun", customerId: landsvirkjun.id, unitsNeeded: 1, needsToilet: true, minSizeM2: 28, location: "Suðurland", startDate: `${y}-10-01`, endDate: `${y + 1}-06-30`, status: "planning", requiredEquipment: JSON.stringify(["Eldhúskrókur", "Loftkæling", "Innréttingar"]) } });
-  const p3 = await prisma.project.create({ data: { name: "Skrifstofa á verkstað – Sundabraut", customerId: iav.id, unitsNeeded: 2, needsToilet: false, minSizeM2: 15, location: "Reykjavík", startDate: `${y}-08-15`, endDate: `${y}-11-30`, status: "active", requiredEquipment: JSON.stringify(["Skrifborð", "Nettenging"]) } });
-  const p4 = await prisma.project.create({ data: { name: "Brúarvinna – Skeiðarársandur", customerId: vegagerdin.id, unitsNeeded: 2, needsToilet: true, minSizeM2: 18, location: "Suðausturland", startDate: `${y}-09-20`, endDate: `${y}-12-01`, status: "planning", requiredEquipment: JSON.stringify(["Hitablásari", "Öryggisdyr"]) } });
-  const p5 = await prisma.project.create({ data: { name: "Gangnagerð – Fjarðarheiði", customerId: istak.id, unitsNeeded: 4, needsToilet: true, minSizeM2: 24, location: "Austurland", startDate: `${y + 1}-01-10`, endDate: `${y + 1}-09-30`, status: "planning", requiredEquipment: JSON.stringify(["Sturta", "Eldhúskrókur", "Nettenging"]) } });
+  const p1 = await prisma.project.create({ data: { name: "Vinnubúðir – Kárahnjúkar", customerId: verkis.id, unitsNeeded: 3, needsToilet: true, minSizeM2: 20, location: "Austurland", startDate: `${y}-09-01`, endDate: `${y}-12-15`, status: "active", requiredEquipment: ["Sturta", "Hitablásari"] } });
+  const p2 = await prisma.project.create({ data: { name: "Kaffistofa – Hvammsvirkjun", customerId: landsvirkjun.id, unitsNeeded: 1, needsToilet: true, minSizeM2: 28, location: "Suðurland", startDate: `${y}-10-01`, endDate: `${y + 1}-06-30`, status: "planning", requiredEquipment: ["Eldhúskrókur", "Loftkæling", "Innréttingar"] } });
+  const p3 = await prisma.project.create({ data: { name: "Skrifstofa á verkstað – Sundabraut", customerId: iav.id, unitsNeeded: 2, needsToilet: false, minSizeM2: 15, location: "Reykjavík", startDate: `${y}-08-15`, endDate: `${y}-11-30`, status: "active", requiredEquipment: ["Skrifborð", "Nettenging"] } });
+  const p4 = await prisma.project.create({ data: { name: "Brúarvinna – Skeiðarársandur", customerId: vegagerdin.id, unitsNeeded: 2, needsToilet: true, minSizeM2: 18, location: "Suðausturland", startDate: `${y}-09-20`, endDate: `${y}-12-01`, status: "planning", requiredEquipment: ["Hitablásari", "Öryggisdyr"] } });
+  const p5 = await prisma.project.create({ data: { name: "Gangnagerð – Fjarðarheiði", customerId: istak.id, unitsNeeded: 4, needsToilet: true, minSizeM2: 24, location: "Austurland", startDate: `${y + 1}-01-10`, endDate: `${y + 1}-09-30`, status: "planning", requiredEquipment: ["Sturta", "Eldhúskrókur", "Nettenging"] } });
 
   console.log("Sái einingum…");
   const mkUnit = (code: string, sizeM2: number, hasToilet: boolean, status: string, location: string, equipment: string[], customerId?: string) =>
-    prisma.unit.create({ data: { code, sizeM2, hasToilet, status, location, equipment: JSON.stringify(equipment), customerId: customerId ?? null } });
+    prisma.unit.create({ data: { code, sizeM2, hasToilet, status, location, equipment, customerId: customerId ?? null } });
 
   const u1 = await mkUnit("ST-101", 15, false, "available", "Lager RVK", ["Hitablásari", "Rafmagnstafla", "Gluggar"]);
   const u2 = await mkUnit("ST-102", 24, true, "available", "Lager RVK", ["Sturta", "Eldhúskrókur", "Hitablásari", "Loftkæling", "Öryggisdyr"]);
@@ -124,10 +124,10 @@ async function main() {
   });
 
   console.log("Sái samningum…");
-  const c1 = await prisma.contract.create({ data: { number: `LS-${y}-014`, customerId: verkis.id, projectId: p1.id, unitIds: JSON.stringify([u4.id]), startDate: `${y}-09-01`, endDate: `${y}-12-15`, monthlyIsk: 1_180_000, status: "virkur", notes: "Verðtryggt skv. byggingarvísitölu." } });
-  const c2 = await prisma.contract.create({ data: { number: `LS-${y}-021`, customerId: landsvirkjun.id, projectId: p2.id, unitIds: JSON.stringify([u8.id]), startDate: `${y}-06-01`, endDate: iso(24), monthlyIsk: 640_000, status: "rennur_ut", notes: "Framlenging í skoðun." } });
-  const c3 = await prisma.contract.create({ data: { number: `LS-${y}-023`, customerId: iav.id, projectId: p3.id, unitIds: JSON.stringify([u12.id]), startDate: `${y}-08-15`, endDate: `${y}-11-30`, monthlyIsk: 890_000, status: "virkur", notes: "" } });
-  await prisma.contract.create({ data: { number: `LS-${y}-027`, customerId: istak.id, projectId: p5.id, unitIds: JSON.stringify([]), startDate: `${y + 1}-01-10`, endDate: `${y + 1}-09-30`, monthlyIsk: 2_140_000, status: "drog", notes: "Bíður undirritunar." } });
+  const c1 = await prisma.contract.create({ data: { number: `LS-${y}-014`, customerId: verkis.id, projectId: p1.id, unitIds: [u4.id], startDate: `${y}-09-01`, endDate: `${y}-12-15`, monthlyIsk: 1_180_000, status: "virkur", notes: "Verðtryggt skv. byggingarvísitölu." } });
+  const c2 = await prisma.contract.create({ data: { number: `LS-${y}-021`, customerId: landsvirkjun.id, projectId: p2.id, unitIds: [u8.id], startDate: `${y}-06-01`, endDate: iso(24), monthlyIsk: 640_000, status: "rennur_ut", notes: "Framlenging í skoðun." } });
+  const c3 = await prisma.contract.create({ data: { number: `LS-${y}-023`, customerId: iav.id, projectId: p3.id, unitIds: [u12.id], startDate: `${y}-08-15`, endDate: `${y}-11-30`, monthlyIsk: 890_000, status: "virkur", notes: "" } });
+  await prisma.contract.create({ data: { number: `LS-${y}-027`, customerId: istak.id, projectId: p5.id, unitIds: [], startDate: `${y + 1}-01-10`, endDate: `${y + 1}-09-30`, monthlyIsk: 2_140_000, status: "drog", notes: "Bíður undirritunar." } });
 
   console.log("Sái tilboðum…");
   await prisma.quote.createMany({

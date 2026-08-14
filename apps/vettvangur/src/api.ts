@@ -1,6 +1,17 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-const BASE = "/api";
+// In local dev the api and vettvangur apps share an origin via the Vite proxy (vite.config.ts), so
+// "" (relative) works. In production they're deployed as separate services with different origins —
+// VITE_API_URL must then be set to the API's own origin (e.g. https://stolpi-api.up.railway.app),
+// no trailing slash. See DEPLOY.md.
+const API_ORIGIN = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "";
+const BASE = `${API_ORIGIN}/api`;
+
+/** Photo URLs come back as paths relative to the API (e.g. "/uploads/x.jpg") — resolve against the
+ * API's origin so `<img>` tags work when the frontend and API are on different hosts. */
+export function resolveUploadUrl(path: string): string {
+  return `${API_ORIGIN}${path}`;
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -47,7 +58,7 @@ export async function uploadPhoto(blob: Blob): Promise<string> {
   const form = new FormData();
   form.append("photo", blob, "photo.jpg");
   const res = await request<{ url: string }>("/uploads", { method: "POST", body: form });
-  return res.url;
+  return resolveUploadUrl(res.url);
 }
 
 export interface CompletePayload {

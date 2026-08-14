@@ -39,14 +39,13 @@ billingRouter.post(
     const created = [];
     for (const c of toCreate) {
       n += 1;
-      const unitIds: string[] = JSON.parse(c.unitIds || "[]");
       const invoice = await prisma.invoice.create({
         data: {
           number: `RE-${period.replace("-", "")}-${String(n).padStart(3, "0")}`,
           customerId: c.customerId,
           contractNumber: c.number,
           period,
-          units: unitIds.length,
+          units: c.unitIds.length,
           amountIsk: c.monthlyIsk,
           status: "tilbuinn",
           bcRef: null,

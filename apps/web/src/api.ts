@@ -1,6 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-const BASE = "/api";
+// In local dev, web and api share an origin via the Vite proxy (vite.config.ts). In production
+// they're separate Railway services — VITE_API_URL must be set to the API's own origin (no
+// trailing slash, e.g. https://stolpi-api.up.railway.app). See DEPLOY.md.
+const API_ORIGIN = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "";
+const BASE = `${API_ORIGIN}/api`;
+
+/** Photo URLs come back as paths relative to the API (e.g. "/uploads/x.jpg") — resolve against the
+ * API's origin so `<img>` tags work when the frontend and API are on different hosts. */
+export function resolveUploadUrl(path: string): string {
+  return `${API_ORIGIN}${path}`;
+}
 
 /** Formats the API's error shape (a plain string, or a zod .flatten() object) into one readable line. */
 function formatApiError(error: unknown): string {

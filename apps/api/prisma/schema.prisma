@@ -2,9 +2,8 @@
 // design_handoff_stolpi_kerfi/README.md ("State Management") og staðfest í
 // seed()-fallinu í Stólpi Kerfi.dc.html (línur 1001-1136).
 //
-// SQLite hefur hvorki innbyggð fylki né enum — listar (equipment, unitIds,
-// requiredEquipment) eru geymdir sem JSON-strengir og af-/raðgreindir í API-laginu;
-// stöðugildi eru String og staðfest gegn shared/src/enums.ts.
+// PostgreSQL — listar (equipment, unitIds, requiredEquipment) eru innfædd String[]
+// fylki; stöðugildi eru String og staðfest gegn shared/src/enums.ts.
 //
 // Allar tengingar eru `onDelete: Restrict` (skýrt tilgreint, ekki Prisma-sjálfgefið) —
 // Prisma sjálfgefur annars hljóðlaust `SetNull` á valfrjálsar tengingar, sem myndi
@@ -16,7 +15,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -27,7 +26,7 @@ model Unit {
   hasToilet  Boolean  @default(false)
   status     String   @default("available")
   location   String
-  equipment  String   @default("[]") // JSON string[]
+  equipment  String[] @default([])
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
 
@@ -50,7 +49,7 @@ model Project {
   startDate         String?
   endDate           String?
   status            String   @default("planning")
-  requiredEquipment String   @default("[]") // JSON string[]
+  requiredEquipment String[] @default([])
 
   requests  ServiceRequest[]
   contracts Contract[]
@@ -151,7 +150,7 @@ model Contract {
   customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
   projectId  String?
   project    Project? @relation(fields: [projectId], references: [id], onDelete: Restrict)
-  unitIds    String   @default("[]") // JSON string[]
+  unitIds    String[] @default([])
   startDate  String?
   endDate    String?
   monthlyIsk Float    @default(0)
