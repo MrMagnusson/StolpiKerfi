@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Btn, Field, Input, Select, Textarea, Chip, BlueprintBox } from "@stolpi/ui";
+import type { Unit } from "@stolpi/shared";
 import { fieldConfig, KIND_KICKER, KIND_DEFAULTS } from "./fieldConfig.js";
 import { buildPanels } from "./panels.js";
+import { PhotoSlots } from "./PhotoSlots.js";
 import { useCreate, useItem, useList, useRemove, useUpdate } from "../../api.js";
 import { PageHeader } from "../../layout/PageHeader.js";
 
 export function DetailPage({ isNew }: { isNew: boolean }) {
   const { kind = "", id } = useParams();
+  const [params] = useSearchParams();
   const nav = useNavigate();
 
   const { data: existing } = useItem<any>(kind, isNew ? undefined : id);
@@ -31,11 +34,13 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
 
   useEffect(() => {
     if (isNew) {
-      setDraft({ ...(KIND_DEFAULTS[kind] || {}) });
+      const defaults: Record<string, unknown> = { ...(KIND_DEFAULTS[kind] || {}) };
+      if (kind === "damages" && params.get("unitId")) defaults.unitId = params.get("unitId");
+      setDraft(defaults);
     } else if (existing) {
       setDraft(existing);
     }
-  }, [isNew, existing, kind]);
+  }, [isNew, existing, kind]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!draft) return <div style={{ padding: 28, opacity: 0.6 }}>Hleð…</div>;
 
@@ -50,6 +55,15 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
       } else if (id) {
         await update.mutateAsync({ id, data: draft });
       }
+    } catch {
+      // the QueryClient's default mutation onError already alerted the user
+    }
+  };
+  const savePhoto = async (field: string, url: string | null) => {
+    setField(field, url);
+    if (!id) return;
+    try {
+      await update.mutateAsync({ id, data: { [field]: url } });
     } catch {
       // the QueryClient's default mutation onError already alerted the user
     }
@@ -162,6 +176,7 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
               {p.isEmpty ? <div style={{ border: "1px dashed var(--color-divider)", padding: 16, textAlign: "center", fontSize: 12.5, opacity: 0.6, marginTop: 8 }}>{p.emptyText}</div> : null}
             </BlueprintBox>
           ))}
+          {kind === "units" && !isNew ? <PhotoSlots unit={draft as unknown as Unit} onSave={savePhoto} /> : null}
         </div>
       </div>
     </>

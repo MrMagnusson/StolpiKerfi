@@ -26,7 +26,7 @@ function formatApiError(error: unknown): string {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
+    headers: init?.body instanceof FormData ? init.headers : { "Content-Type": "application/json", ...(init?.headers || {}) },
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -74,6 +74,13 @@ export function useRemove(kind: string) {
     mutationFn: (id: string) => request<void>(`/${kind}/${id}`, { method: "DELETE" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: [kind] }),
   });
+}
+
+export async function uploadPhoto(blob: Blob): Promise<string> {
+  const form = new FormData();
+  form.append("photo", blob, "photo.jpg");
+  const res = await request<{ url: string }>("/uploads", { method: "POST", body: form });
+  return resolveUploadUrl(res.url);
 }
 
 export function useDashboard() {

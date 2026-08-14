@@ -13,6 +13,10 @@ export interface Unit {
   location: string;
   equipment: string[];
   customerId: string | null;
+  photoMottaka: string | null;
+  photoStandsett: string | null;
+  photoSkemmd: string | null;
+  photoAstand: string | null;
 }
 
 export interface Project {

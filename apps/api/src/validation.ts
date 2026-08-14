@@ -13,6 +13,10 @@ export const SCHEMAS: Record<string, z.AnyZodObject> = {
     location: z.string().min(1),
     equipment: z.array(z.string()).optional(),
     customerId: z.string().nullable().optional(),
+    photoMottaka: z.string().nullable().optional(),
+    photoStandsett: z.string().nullable().optional(),
+    photoSkemmd: z.string().nullable().optional(),
+    photoAstand: z.string().nullable().optional(),
   }).partial({ code: true, sizeM2: true, location: true }),
 
   projects: z.object({

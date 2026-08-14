@@ -30,6 +30,12 @@ model Unit {
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
 
+  // Ástandsmyndir — README.md "4 photo slots" á einingasíðunni. Slóðir frá POST /api/uploads.
+  photoMottaka   String?
+  photoStandsett String?
+  photoSkemmd    String?
+  photoAstand    String?
+
   damages     Damage[]
   maintenance MaintenanceEntry[]
   requests    ServiceRequest[]
