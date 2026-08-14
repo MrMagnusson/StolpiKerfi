@@ -10,6 +10,7 @@ import { billingRouter } from "./routes/billing.js";
 import { bcRouter } from "./routes/bc.js";
 import { vettvangurRouter } from "./routes/vettvangur.js";
 import { uploadsRouter } from "./routes/uploads.js";
+import { adminRouter } from "./routes/admin.js";
 import { errorHandler } from "./errorHandler.js";
 
 const app = express();
@@ -29,6 +30,7 @@ app.use("/api/billing", billingRouter);
 app.use("/api/bc", bcRouter);
 app.use("/api/vettvangur", vettvangurRouter);
 app.use("/api/uploads", uploadsRouter);
+app.use("/api/admin", adminRouter);
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 

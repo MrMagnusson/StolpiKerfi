@@ -16,4 +16,8 @@ COPY --from=build /repo/packages ./packages
 COPY --from=build /repo/apps/api ./apps/api
 WORKDIR /repo/apps/api
 EXPOSE 4000
-CMD ["sh", "-c", "npm run db:deploy && node dist/index.js"]
+# db push (not migrate deploy): no migration-history files exist yet — the demo database is only
+# reachable from inside Railway's network, so schema sync happens here at container start using the
+# internal DATABASE_URL, not from a developer machine. Switch to migrate dev/deploy once the schema
+# has stabilized and direct Postgres access (e.g. via Railway's public proxy) is worth enabling.
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss --skip-generate && node dist/index.js"]
