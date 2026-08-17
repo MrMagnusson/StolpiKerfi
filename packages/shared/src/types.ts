@@ -8,6 +8,9 @@ export interface Unit {
   id: string;
   code: string;
   sizeM2: number;
+  sizeFt: number | null;
+  lengthM: number | null;
+  widthM: number | null;
   hasToilet: boolean;
   status: UnitStatus;
   location: string;

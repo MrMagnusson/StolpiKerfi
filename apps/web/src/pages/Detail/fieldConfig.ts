@@ -40,6 +40,9 @@ export function fieldConfig(kind: string, refs: RefLists): FieldDef[] {
     units: [
       { key: "code", label: "Kóði", type: "text" },
       { key: "sizeM2", label: "Stærð (m²)", type: "number" },
+      { key: "sizeFt", label: "Fet (ft)", type: "number" },
+      { key: "lengthM", label: "Lengd (m) — ef fet á ekki við", type: "number" },
+      { key: "widthM", label: "Breidd (m) — ef fet á ekki við", type: "number" },
       { key: "status", label: "Staða", type: "select", options: toneEntOpts(UNIT_STATUS) },
       { key: "location", label: "Staðsetning", type: "text" },
       { key: "hasToilet", label: "Klósett", type: "toggle" },

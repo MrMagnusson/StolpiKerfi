@@ -23,6 +23,11 @@ model Unit {
   id         String   @id @default(cuid())
   code       String   @unique
   sizeM2     Float
+  // Fetastærð (10/20/24/30/40 ft o.s.frv.) — sú mælieining sem er notuð á einingarnar í reynd.
+  // Þegar stærðin passar ekki við staðlaða fetatölu er lengd × breidd í metrum notuð í staðinn.
+  sizeFt     Float?
+  lengthM    Float?
+  widthM     Float?
   hasToilet  Boolean  @default(false)
   status     String   @default("available")
   location   String

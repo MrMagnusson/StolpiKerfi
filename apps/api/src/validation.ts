@@ -8,6 +8,9 @@ export const SCHEMAS: Record<string, z.AnyZodObject> = {
   units: z.object({
     code: z.string().min(1),
     sizeM2: z.number().nonnegative(),
+    sizeFt: z.number().nonnegative().nullable().optional(),
+    lengthM: z.number().nonnegative().nullable().optional(),
+    widthM: z.number().nonnegative().nullable().optional(),
     hasToilet: z.boolean().optional(),
     status: z.string().optional(),
     location: z.string().min(1),

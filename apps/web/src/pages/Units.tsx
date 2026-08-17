@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BlueprintButton, FilterPill, Tag } from "@stolpi/ui";
-import { UNIT_STATUS, norm, type Unit, type UnitStatus } from "@stolpi/shared";
+import { UNIT_STATUS, formatUnitSize, norm, type Unit, type UnitStatus } from "@stolpi/shared";
 import { PageHeader } from "../layout/PageHeader.js";
 import { useList } from "../api.js";
 
@@ -58,23 +58,21 @@ export function Units() {
                     background: u.coverPhotoUrl
                       ? "var(--color-neutral-200)"
                       : "repeating-linear-gradient(45deg, transparent, transparent 7px, var(--color-neutral-200) 7px, var(--color-neutral-200) 8px)",
-                    display: "grid",
-                    placeItems: "center",
                   }}
                 >
                   {u.coverPhotoUrl ? (
                     <img src={u.coverPhotoUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }} />
                   ) : null}
-                  <div style={{ position: "relative", border: "1px solid var(--color-accent-600)", background: "var(--color-bg)", padding: "8px 18px", fontFamily: "var(--font-heading)", fontSize: 26, lineHeight: 1, color: "var(--color-accent-800)" }}>
-                    {u.sizeM2} m²
-                  </div>
                   <span style={{ position: "absolute", left: 10, top: 9, fontSize: 11, letterSpacing: ".14em", opacity: 0.6, color: u.coverPhotoUrl ? "var(--color-bg)" : undefined, textShadow: u.coverPhotoUrl ? "0 1px 3px rgba(0,0,0,.6)" : undefined }}>
                     {u.location}
                   </span>
                 </div>
                 <div style={{ padding: "13px 15px 15px", display: "flex", flexDirection: "column", gap: 9 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                    <span style={{ fontFamily: "var(--font-heading)", fontSize: 20, lineHeight: 1, letterSpacing: ".03em" }}>{u.code}</span>
+                    <span style={{ display: "flex", alignItems: "baseline", gap: 6, minWidth: 0 }}>
+                      <span style={{ fontFamily: "var(--font-heading)", fontSize: 20, lineHeight: 1, letterSpacing: ".03em" }}>{u.code}</span>
+                      <span style={{ fontSize: 12, opacity: 0.6, whiteSpace: "nowrap" }}>{formatUnitSize(u)}</span>
+                    </span>
                     <Tag tone={UNIT_STATUS[u.status].tone}>{UNIT_STATUS[u.status].label}</Tag>
                   </div>
                   <div style={{ fontSize: 12, opacity: 0.7 }}>

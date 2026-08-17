@@ -61,21 +61,29 @@ export async function seedDatabase(prisma: PrismaClient) {
   const p5 = await prisma.project.create({ data: { name: "Gangnagerð – Fjarðarheiði", customerId: istak.id, unitsNeeded: 4, needsToilet: true, minSizeM2: 24, location: "Austurland", startDate: `${y + 1}-01-10`, endDate: `${y + 1}-09-30`, status: "planning", requiredEquipment: ["Sturta", "Eldhúskrókur", "Nettenging"] } });
 
   console.log("Sái einingum…");
-  const mkUnit = (code: string, sizeM2: number, hasToilet: boolean, status: string, location: string, equipment: string[], customerId?: string) =>
-    prisma.unit.create({ data: { code, sizeM2, hasToilet, status, location, equipment, customerId: customerId ?? null } });
+  const mkUnit = (
+    code: string, sizeM2: number, hasToilet: boolean, status: string, location: string, equipment: string[],
+    customerId?: string, size?: { sizeFt?: number; lengthM?: number; widthM?: number },
+  ) =>
+    prisma.unit.create({
+      data: {
+        code, sizeM2, hasToilet, status, location, equipment, customerId: customerId ?? null,
+        sizeFt: size?.sizeFt ?? null, lengthM: size?.lengthM ?? null, widthM: size?.widthM ?? null,
+      },
+    });
 
-  const u1 = await mkUnit("ST-101", 15, false, "available", "Lager RVK", ["Hitablásari", "Rafmagnstafla", "Gluggar"]);
-  const u2 = await mkUnit("ST-102", 24, true, "available", "Lager RVK", ["Sturta", "Eldhúskrókur", "Hitablásari", "Loftkæling", "Öryggisdyr"]);
-  const u3 = await mkUnit("ST-103", 30, true, "available", "Lager RVK", ["Sturta", "Eldhúskrókur", "Loftkæling", "Innréttingar", "Nettenging"]);
-  const u4 = await mkUnit("ST-104", 15, false, "in_use", "Kárahnjúkar", ["Rafmagnstafla", "Gluggar", "Skrifborð"], verkis.id);
-  const u5 = await mkUnit("ST-105", 20, true, "returned", "Lager RVK", ["Sturta", "Hitablásari", "Öryggisdyr"]);
-  const u6 = await mkUnit("ST-106", 36, true, "available", "Lager RVK", ["Sturta", "Eldhúskrókur", "Loftkæling", "Innréttingar", "Nettenging", "Öryggisdyr", "Skrifborð"]);
-  const u7 = await mkUnit("ST-107", 18, false, "reserved", "Lager RVK", ["Hitablásari", "Gluggar", "Skrifborð"]);
-  const u8 = await mkUnit("ST-108", 24, true, "in_use", "Þeistareykir", ["Sturta", "Eldhúskrókur", "Hitablásari"], landsvirkjun.id);
-  const u9 = await mkUnit("ST-109", 30, true, "available", "Lager Akureyri", ["Sturta", "Eldhúskrókur", "Ísskápur", "Nettenging"]);
-  const u10 = await mkUnit("ST-110", 12, false, "available", "Lager Akureyri", ["Rafmagnstafla", "Gluggar"]);
-  const u11 = await mkUnit("ST-201", 24, true, "damaged", "Verkstæði", ["Sturta", "Eldhúskrókur"]);
-  const u12 = await mkUnit("ST-202", 40, true, "in_use", "Hvammsvirkjun", ["Sturta", "Eldhúskrókur", "Loftkæling", "Innréttingar", "Nettenging", "Skrifborð"], iav.id);
+  const u1 = await mkUnit("ST-101", 15, false, "available", "Lager RVK", ["Hitablásari", "Rafmagnstafla", "Gluggar"], undefined, { sizeFt: 10 });
+  const u2 = await mkUnit("ST-102", 24, true, "available", "Lager RVK", ["Sturta", "Eldhúskrókur", "Hitablásari", "Loftkæling", "Öryggisdyr"], undefined, { sizeFt: 20 });
+  const u3 = await mkUnit("ST-103", 30, true, "available", "Lager RVK", ["Sturta", "Eldhúskrókur", "Loftkæling", "Innréttingar", "Nettenging"], undefined, { sizeFt: 24 });
+  const u4 = await mkUnit("ST-104", 15, false, "in_use", "Kárahnjúkar", ["Rafmagnstafla", "Gluggar", "Skrifborð"], verkis.id, { sizeFt: 10 });
+  const u5 = await mkUnit("ST-105", 20, true, "returned", "Lager RVK", ["Sturta", "Hitablásari", "Öryggisdyr"], undefined, { lengthM: 6.1, widthM: 3.3 });
+  const u6 = await mkUnit("ST-106", 36, true, "available", "Lager RVK", ["Sturta", "Eldhúskrókur", "Loftkæling", "Innréttingar", "Nettenging", "Öryggisdyr", "Skrifborð"], undefined, { sizeFt: 30 });
+  const u7 = await mkUnit("ST-107", 18, false, "reserved", "Lager RVK", ["Hitablásari", "Gluggar", "Skrifborð"], undefined, { sizeFt: 12 });
+  const u8 = await mkUnit("ST-108", 24, true, "in_use", "Þeistareykir", ["Sturta", "Eldhúskrókur", "Hitablásari"], landsvirkjun.id, { sizeFt: 20 });
+  const u9 = await mkUnit("ST-109", 30, true, "available", "Lager Akureyri", ["Sturta", "Eldhúskrókur", "Ísskápur", "Nettenging"], undefined, { sizeFt: 24 });
+  const u10 = await mkUnit("ST-110", 12, false, "available", "Lager Akureyri", ["Rafmagnstafla", "Gluggar"], undefined, { lengthM: 4.0, widthM: 3.0 });
+  const u11 = await mkUnit("ST-201", 24, true, "damaged", "Verkstæði", ["Sturta", "Eldhúskrókur"], undefined, { sizeFt: 20 });
+  const u12 = await mkUnit("ST-202", 40, true, "in_use", "Hvammsvirkjun", ["Sturta", "Eldhúskrókur", "Loftkæling", "Innréttingar", "Nettenging", "Skrifborð"], iav.id, { sizeFt: 32 });
 
   console.log("Sái sölutækifærum og samskiptum…");
   await prisma.deal.createMany({

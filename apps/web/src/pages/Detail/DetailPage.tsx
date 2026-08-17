@@ -145,7 +145,7 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
                 <Input
                   type={f.type === "number" ? "number" : f.type === "date" ? "date" : "text"}
                   value={(v ?? "") as string | number}
-                  onChange={(e) => setField(f.key, f.type === "number" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value)}
+                  onChange={(e) => setField(f.key, f.type === "number" ? (e.target.value === "" ? null : Number(e.target.value)) : e.target.value)}
                 />
               </Field>
             );
