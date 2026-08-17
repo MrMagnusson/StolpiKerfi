@@ -182,7 +182,7 @@ export const KIND_DEFAULTS: Record<string, Record<string, unknown>> = {
   contacts: {},
   deals: { stage: "nytt", owner: "Kalli", source: "Tilvísun" },
   activities: { type: "simtal", done: false },
-  requests: { status: "ny", type: "standsetning", priority: "medal", assignedTo: "Þjónusta" },
+  requests: { status: "ny", type: "mottaka", priority: "medal", assignedTo: "Þjónusta" },
   contracts: { status: "drog", unitIds: [] },
   quotes: { status: "drog" },
   pricing: { minMonths: 3 },

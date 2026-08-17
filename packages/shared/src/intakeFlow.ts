@@ -16,6 +16,14 @@ export const INTAKE_STEPS: IntakeStepDef[] = [
   { key: "tilbuin", label: "Tilbúin", title: "Tilbúin til leigu", intro: "Lokastaðfesting. Tvær myndir af núverandi ástandi — að innan og að utan — eru skilyrði fyrir því að eining fari í útleigu." },
 ];
 
+/** Which of the 4 steps apply for a given ServiceRequest.type (see isIntakeReqType in enums.ts):
+ * a "mottaka" request is a unit showing up with no prior check-in, so it gets all 4 steps starting
+ * with "Móttaka einingar"; a "standsetning" request is for a unit that's already checked in and
+ * just needs refurbishment, so it skips straight to "Ástandsmat" — no reception step to confirm. */
+export function intakeStepsFor(reqType: string): IntakeStepDef[] {
+  return reqType === "standsetning" ? INTAKE_STEPS.filter((s) => s.key !== "mottaka") : INTAKE_STEPS;
+}
+
 export interface IntakeCheckDef {
   key: string;
   label: string;

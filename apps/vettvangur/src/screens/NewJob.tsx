@@ -21,7 +21,7 @@ export function NewJob() {
   const create = useCreateRequest();
 
   const [title, setTitle] = useState("");
-  const [type, setType] = useState<ReqType>("vidgerd");
+  const [type, setType] = useState<ReqType>("mottaka");
   const [unitId, setUnitId] = useState("");
   const [contractId, setContractId] = useState("");
   const [priority, setPriority] = useState<Priority>("medal");
@@ -40,7 +40,7 @@ export function NewJob() {
       return;
     }
     if (isIntake && !unitId) {
-      setError("Móttaka þarf einingu — veldu hvaða eining er að skila sér.");
+      setError("Veldu einingu sem verkið á við.");
       return;
     }
     if (isIntake && !contractId) {
@@ -95,13 +95,15 @@ export function NewJob() {
               <option key={t} value={t}>{REQ_TYPE[t]}</option>
             ))}
           </select>
-          {isIntake ? (
+          {type === "mottaka" ? (
             <div style={{ fontSize: 12, opacity: 0.6, marginTop: 5 }}>Móttaka fer í gegnum skilyrta 4-þrepa ferlið (móttaka → ástandsmat → standsetning → tilbúin).</div>
+          ) : type === "standsetning" ? (
+            <div style={{ fontSize: 12, opacity: 0.6, marginTop: 5 }}>Standsetning sleppir móttökuskrefinu — eining er þegar komin, ferlið fer beint í ástandsmat → standsetningu → tilbúin.</div>
           ) : null}
         </div>
 
         <div className="field" style={{ margin: 0 }}>
-          <label>{isIntake ? "Eining sem er að skila sér" : "Eining (valfrjálst)"}</label>
+          <label>{type === "mottaka" ? "Eining sem er að skila sér" : isIntake ? "Eining sem á að vinna" : "Eining (valfrjálst)"}</label>
           <select
             className="input"
             style={{ minHeight: 46 }}

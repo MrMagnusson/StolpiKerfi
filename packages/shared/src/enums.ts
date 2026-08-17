@@ -56,8 +56,9 @@ export const REQ_STATUS: Record<ReqStatus, { label: string; tone: Tone }> = {
   hafnad: { label: "Hafnað", tone: "bad" },
 };
 
-export type ReqType = "standsetning" | "vidgerd" | "flutningur" | "samsetning" | "uppsetning" | "annad";
+export type ReqType = "mottaka" | "standsetning" | "vidgerd" | "flutningur" | "samsetning" | "uppsetning" | "annad";
 export const REQ_TYPE: Record<ReqType, string> = {
+  mottaka: "Móttaka",
   standsetning: "Standsetning",
   vidgerd: "Viðgerð",
   flutningur: "Flutningur",
@@ -66,10 +67,12 @@ export const REQ_TYPE: Record<ReqType, string> = {
   annad: "Annað",
 };
 
-/** Only "standsetning" (unit intake/return) uses the gated 4-step Vettvangur flow — every other
- * type (assembly, on-site setup, repairs, transport, other) uses the simple one-step flow. */
+/** "mottaka" (unit shows up with no prior check-in) and "standsetning" (a unit already checked in
+ * that just needs refurbishment work) both use the gated Vettvangur flow — see intakeStepsFor() for
+ * which steps each gets. Every other type (assembly, on-site setup, repairs, transport, other) uses
+ * the simple one-step flow. */
 export function isIntakeReqType(type: string): boolean {
-  return type === "standsetning";
+  return type === "mottaka" || type === "standsetning";
 }
 
 export type Priority = "lag" | "medal" | "ha";

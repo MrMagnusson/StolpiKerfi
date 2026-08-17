@@ -1,7 +1,7 @@
 // Ported from Screen A "Verk dagsins", Stólpi Vettvangur.dc.html lines 22-61 & 329-352.
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { REQ_TYPE, TONES, INTAKE_STEPS, isIntakeReqType, type Tone } from "@stolpi/shared";
+import { REQ_TYPE, TONES, intakeStepsFor, isIntakeReqType, type Tone } from "@stolpi/shared";
 import { useRequests, type VettvangurRequest } from "../api.js";
 import { loadProgress } from "../progress.js";
 
@@ -70,8 +70,9 @@ export function JobList() {
         ) : null}
         {list.map((r) => {
           const isIntake = isIntakeReqType(r.type);
+          const steps = intakeStepsFor(r.type);
           const progress = loadProgress(r.id);
-          const at = r.status === "lokid" ? 4 : progress.step;
+          const at = r.status === "lokid" ? steps.length : progress.step;
           const overdue = r.dueDate && r.dueDate < today && r.status !== "lokid";
           const tone: Tone = r.status === "lokid" ? "ok" : overdue ? "bad" : r.priority === "ha" ? "warn" : "info";
           const statusLabel = r.status === "lokid" ? "Lokið" : overdue ? "Yfir tíma" : r.priority === "ha" ? "Forgangur" : "Í vinnslu";
@@ -93,12 +94,12 @@ export function JobList() {
               {isIntake ? (
                 <>
                   <span style={{ display: "flex", gap: 5, paddingTop: 8, borderTop: "1px solid var(--color-divider)", width: "100%" }}>
-                    {INTAKE_STEPS.map((s, i) => (
+                    {steps.map((s, i) => (
                       <span key={s.key} style={{ flex: 1, height: 6, background: i < at ? "var(--color-accent)" : "var(--color-neutral-300)" }} />
                     ))}
                   </span>
                   <span style={{ fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", opacity: 0.55 }}>
-                    {r.status === "lokid" ? "Ferli lokið" : at === 0 ? "Ekki hafið" : `Skref ${at} af 4 lokið`}
+                    {r.status === "lokid" ? "Ferli lokið" : at === 0 ? "Ekki hafið" : `Skref ${at} af ${steps.length} lokið`}
                   </span>
                 </>
               ) : (

@@ -126,7 +126,7 @@ export async function seedDatabase(prisma: PrismaClient) {
       { title: "Viðgerð á hurð – ST-201", type: "vidgerd", unitId: u11.id, projectId: null, status: "i_vinnslu", priority: "ha", description: "Öryggisdyr skekktar eftir flutning.", assignedTo: "Verkstæði", dueDate: iso(3) },
       { title: "Flutningur ST-109 norður", type: "flutningur", unitId: u9.id, projectId: p5.id, status: "ny", priority: "medal", description: "Keyrsla frá Akureyri á verkstað.", assignedTo: "Flutningar", dueDate: iso(8) },
       { title: "Tenging nettengingar – ST-106", type: "annad", unitId: u6.id, projectId: p3.id, status: "tilbuin", priority: "lag", description: "Beðið eftir staðfestingu viðskiptavinar.", assignedTo: "Þjónusta", dueDate: iso(1) },
-      { title: "Yfirferð eftir skil – ST-105", type: "standsetning", unitId: u5.id, projectId: null, status: "i_vinnslu", priority: "medal", description: "Skilamat og myndataka.", assignedTo: "Lager", dueDate: iso(5) },
+      { title: "Yfirferð eftir skil – ST-105", type: "mottaka", unitId: u5.id, projectId: null, status: "i_vinnslu", priority: "medal", description: "Skilamat og myndataka.", assignedTo: "Lager", dueDate: iso(5) },
       { title: "Vetrarþjónusta – ST-104", type: "annad", unitId: u4.id, projectId: p1.id, status: "lokid", priority: "lag", description: "Hitablásari yfirfarinn.", assignedTo: "Þjónusta", dueDate: iso(-14) },
     ],
   });

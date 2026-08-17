@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  DAMAGE_CAUSE, INTAKE_CHECKS, INTAKE_STEPS, TONES, formatIntakePhoto, isIntakeReqType, type CheckMark,
+  DAMAGE_CAUSE, INTAKE_CHECKS, TONES, formatIntakePhoto, intakeStepsFor, isIntakeReqType, type CheckMark,
 } from "@stolpi/shared";
 import { useRequests, useRequestsInvalidate, completeRequest } from "../api.js";
 import { loadProgress, saveProgress, clearProgress, type FlowProgress } from "../progress.js";
@@ -31,6 +31,7 @@ export function JobFlow() {
   const { data: requests = [] } = useRequests();
   const invalidate = useRequestsInvalidate();
   const request = requests.find((r) => r.id === id);
+  const steps = intakeStepsFor(request?.type ?? "mottaka");
 
   const [progress, setProgress] = useState<FlowProgress>(() => loadProgress(id));
   const [screen, setScreen] = useState<"flow" | "done">("flow");
@@ -45,7 +46,7 @@ export function JobFlow() {
     if (screen === "flow") saveProgress(id, progress);
   }, [id, progress, screen]);
 
-  const step = INTAKE_STEPS[progress.step];
+  const step = steps[progress.step];
   const stepKey = step?.key;
   const checklist = stepKey ? INTAKE_CHECKS[stepKey] : [];
   const hasIssue = stepKey === "astand" && checklist.some((c) => progress.checks[`astand:${c.key}`] === "issue");
@@ -124,7 +125,7 @@ export function JobFlow() {
 
   const next = async () => {
     if (requirements.length || busy) return;
-    if (progress.step < 3) {
+    if (progress.step < steps.length - 1) {
       setProgress((p) => ({ ...p, step: p.step + 1 }));
       return;
     }
@@ -209,7 +210,7 @@ export function JobFlow() {
           <span style={{ fontSize: 13, opacity: 0.65 }}>{request.unit?.sizeM2 ? `${request.unit.sizeM2} m² · ` : ""}{request.type}</span>
         </div>
         <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
-          {INTAKE_STEPS.map((s, i) => (
+          {steps.map((s, i) => (
             <div key={s.key} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 5 }}>
               <span style={{ display: "block", height: 5, background: i <= progress.step ? "var(--color-accent)" : "var(--color-neutral-300)" }} />
               <span style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", opacity: i === progress.step ? 1 : 0.5 }}>{s.label}</span>
@@ -220,7 +221,7 @@ export function JobFlow() {
 
       <div style={{ padding: 18, display: "flex", flexDirection: "column", gap: 18 }}>
         <div>
-          <div style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--color-accent-700)" }}>Skref {progress.step + 1} af 4</div>
+          <div style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--color-accent-700)" }}>Skref {progress.step + 1} af {steps.length}</div>
           <h2 style={{ fontSize: 24, margin: "3px 0 4px", lineHeight: 1.05 }}>{step.title}</h2>
           <div style={{ fontSize: 13.5, opacity: 0.7, lineHeight: 1.4 }}>{step.intro}</div>
         </div>
@@ -401,7 +402,7 @@ export function JobFlow() {
         ))}
         {requirements.length === 0 ? <div style={{ fontSize: 12.5, color: "#3f6b4d" }}>✓ Öll skilyrði uppfyllt — hægt að staðfesta skrefið.</div> : null}
         <button className="btn btn-primary" onClick={next} disabled={requirements.length > 0 || busy} style={{ minHeight: 52, fontSize: 16, width: "100%" }}>
-          {busy ? "Vinnur…" : progress.step < 3 ? "Staðfesta skref og halda áfram" : "Setja í Tilbúin til leigu"}
+          {busy ? "Vinnur…" : progress.step < steps.length - 1 ? "Staðfesta skref og halda áfram" : "Setja í Tilbúin til leigu"}
         </button>
       </div>
     </section>
