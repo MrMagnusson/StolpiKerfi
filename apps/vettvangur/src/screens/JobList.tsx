@@ -1,7 +1,7 @@
 // Ported from Screen A "Verk dagsins", Stólpi Vettvangur.dc.html lines 22-61 & 329-352.
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { REQ_TYPE, TONES, INTAKE_STEPS, type Tone } from "@stolpi/shared";
+import { REQ_TYPE, TONES, INTAKE_STEPS, isIntakeReqType, type Tone } from "@stolpi/shared";
 import { useRequests, type VettvangurRequest } from "../api.js";
 import { loadProgress } from "../progress.js";
 
@@ -57,12 +57,19 @@ export function JobList() {
         })}
       </div>
 
+      <div style={{ padding: "10px 18px 0" }}>
+        <button className="btn btn-secondary" onClick={() => nav("/nytt")} style={{ width: "100%", minHeight: 46, fontSize: 14 }}>
+          + Nýtt verk
+        </button>
+      </div>
+
       <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: "14px 18px 30px" }}>
         {isLoading ? <div style={{ opacity: 0.6, padding: "16px 0" }}>Hleð…</div> : null}
         {!isLoading && list.length === 0 ? (
           <div style={{ border: "1px dashed var(--color-divider)", padding: "28px 16px", textAlign: "center", fontSize: 14, opacity: 0.6 }}>Engin verk í þessum flokki.</div>
         ) : null}
         {list.map((r) => {
+          const isIntake = isIntakeReqType(r.type);
           const progress = loadProgress(r.id);
           const at = r.status === "lokid" ? 4 : progress.step;
           const overdue = r.dueDate && r.dueDate < today && r.status !== "lokid";
@@ -83,14 +90,22 @@ export function JobList() {
               <span style={{ fontSize: 13, opacity: 0.65 }}>
                 {REQ_TYPE[r.type as keyof typeof REQ_TYPE]} · {r.unit?.sizeM2 ? `${r.unit.sizeM2} m² · ` : ""}{r.unit?.location ?? ""}
               </span>
-              <span style={{ display: "flex", gap: 5, paddingTop: 8, borderTop: "1px solid var(--color-divider)", width: "100%" }}>
-                {INTAKE_STEPS.map((s, i) => (
-                  <span key={s.key} style={{ flex: 1, height: 6, background: i < at ? "var(--color-accent)" : "var(--color-neutral-300)" }} />
-                ))}
-              </span>
-              <span style={{ fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", opacity: 0.55 }}>
-                {r.status === "lokid" ? "Ferli lokið" : at === 0 ? "Ekki hafið" : `Skref ${at} af 4 lokið`}
-              </span>
+              {isIntake ? (
+                <>
+                  <span style={{ display: "flex", gap: 5, paddingTop: 8, borderTop: "1px solid var(--color-divider)", width: "100%" }}>
+                    {INTAKE_STEPS.map((s, i) => (
+                      <span key={s.key} style={{ flex: 1, height: 6, background: i < at ? "var(--color-accent)" : "var(--color-neutral-300)" }} />
+                    ))}
+                  </span>
+                  <span style={{ fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", opacity: 0.55 }}>
+                    {r.status === "lokid" ? "Ferli lokið" : at === 0 ? "Ekki hafið" : `Skref ${at} af 4 lokið`}
+                  </span>
+                </>
+              ) : (
+                <span style={{ fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", opacity: 0.55, paddingTop: 8, borderTop: "1px solid var(--color-divider)" }}>
+                  {r.status === "lokid" ? "Verki lokið" : "Ólokið"}
+                </span>
+              )}
             </button>
           );
         })}

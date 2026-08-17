@@ -4,11 +4,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  DAMAGE_CAUSE, INTAKE_CHECKS, INTAKE_STEPS, TONES, type CheckMark,
+  DAMAGE_CAUSE, INTAKE_CHECKS, INTAKE_STEPS, TONES, isIntakeReqType, type CheckMark,
 } from "@stolpi/shared";
 import { useRequests, useRequestsInvalidate, completeRequest } from "../api.js";
 import { loadProgress, saveProgress, clearProgress, type FlowProgress } from "../progress.js";
 import { downscaleAndUpload } from "../photo.js";
+import { SimpleJobFlow } from "./SimpleJobFlow.js";
 
 const LOCATIONS = ["Lager RVK", "Lager Akureyri", "Verkstæði"];
 
@@ -88,6 +89,10 @@ export function JobFlow() {
 
   if (!request) {
     return <div style={{ padding: 28, opacity: 0.6 }}>Hleð…</div>;
+  }
+
+  if (!isIntakeReqType(request.type)) {
+    return <SimpleJobFlow request={request} />;
   }
 
   const toggleCheck = (key: string) => {
@@ -293,8 +298,8 @@ export function JobFlow() {
               <div style={{ fontSize: 12.5, opacity: 0.65, lineHeight: 1.35 }}>{g.hint}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 {shots.map((src, i) => (
-                  <div key={i} className="duotone" style={{ height: 104, position: "relative", overflow: "hidden" }}>
-                    <img src={src} alt="Ástandsmynd" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  <div key={i} style={{ height: 104, position: "relative", overflow: "hidden", background: "var(--color-neutral-200)" }}>
+                    <img src={src} alt="Ástandsmynd" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
                     <button
                       onClick={() => removePhoto(g.key, i)}
                       style={{ position: "absolute", right: 4, top: 4, zIndex: 3, width: 26, height: 26, border: "1px solid var(--color-divider)", background: "var(--color-bg)", cursor: "pointer", font: "inherit", fontSize: 13, lineHeight: 1, padding: 0 }}

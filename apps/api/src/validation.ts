@@ -152,6 +152,7 @@ export const SCHEMAS: Record<string, z.AnyZodObject> = {
     note: z.string().nullable().optional(),
     costIsk: z.number().nonnegative().optional(),
     by: z.string().nullable().optional(),
+    photos: z.array(z.string()).optional(),
   }).partial({ unitId: true, date: true, type: true }),
 
   docs: z.object({

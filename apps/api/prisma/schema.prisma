@@ -222,14 +222,15 @@ model Damage {
 }
 
 model MaintenanceEntry {
-  id      String  @id @default(cuid())
+  id      String   @id @default(cuid())
   unitId  String
-  unit    Unit    @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  unit    Unit     @relation(fields: [unitId], references: [id], onDelete: Restrict)
   date    String
   type    String
   note    String?
-  costIsk Float   @default(0)
+  costIsk Float    @default(0)
   by      String?
+  photos  String[] @default([])
 }
 
 model Doc {

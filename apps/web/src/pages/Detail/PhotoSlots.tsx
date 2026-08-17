@@ -51,7 +51,7 @@ function Slot({
           </button>
         ) : null}
       </div>
-      <div className="duotone" style={{ height: 150, position: "relative", overflow: "hidden", border: url ? undefined : "1px dashed var(--color-divider)" }}>
+      <div style={{ height: 150, position: "relative", overflow: "hidden", background: "var(--color-neutral-200)", border: url ? undefined : "1px dashed var(--color-divider)" }}>
         {url ? (
           <>
             <button
@@ -59,7 +59,7 @@ function Slot({
               style={{ width: "100%", height: "100%", border: 0, padding: 0, background: "none", cursor: "zoom-in", display: "block" }}
               aria-label={`Skoða mynd: ${label}`}
             >
-              <img src={url} alt={label} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              <img src={url} alt={label} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
             </button>
             <button
               onClick={onRemove}

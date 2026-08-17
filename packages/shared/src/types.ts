@@ -165,6 +165,7 @@ export interface MaintenanceEntry {
   note: string | null;
   costIsk: number;
   by: string | null;
+  photos: string[];
 }
 
 export interface Doc {

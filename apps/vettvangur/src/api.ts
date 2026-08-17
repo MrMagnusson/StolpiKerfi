@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // In local dev the api and vettvangur apps share an origin via the Vite proxy (vite.config.ts), so
 // "" (relative) works. In production they're deployed as separate services with different origins —
@@ -54,6 +54,28 @@ export function useRequestsInvalidate() {
   return () => qc.invalidateQueries({ queryKey: ["vettvangur-requests"] });
 }
 
+export function useUnits() {
+  return useQuery({ queryKey: ["vettvangur-units"], queryFn: () => request<VettvangurUnit[]>("/units") });
+}
+
+export interface NewRequestPayload {
+  title: string;
+  type: string;
+  unitId: string | null;
+  priority: string;
+  description: string | null;
+  assignedTo: string | null;
+  dueDate: string | null;
+}
+
+export function useCreateRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: NewRequestPayload) => request<VettvangurRequest>("/requests", { method: "POST", body: JSON.stringify(payload) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["vettvangur-requests"] }),
+  });
+}
+
 export async function uploadPhoto(blob: Blob): Promise<string> {
   const form = new FormData();
   form.append("photo", blob, "photo.jpg");
@@ -73,4 +95,14 @@ export interface CompletePayload {
 
 export function completeRequest(id: string, payload: CompletePayload) {
   return request<any>(`/vettvangur/requests/${id}/complete`, { method: "POST", body: JSON.stringify(payload) });
+}
+
+export interface CompleteSimplePayload {
+  note?: string | null;
+  photos?: string[];
+  location?: string | null;
+}
+
+export function completeSimpleRequest(id: string, payload: CompleteSimplePayload) {
+  return request<any>(`/vettvangur/requests/${id}/complete-simple`, { method: "POST", body: JSON.stringify(payload) });
 }

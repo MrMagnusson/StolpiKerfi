@@ -56,13 +56,21 @@ export const REQ_STATUS: Record<ReqStatus, { label: string; tone: Tone }> = {
   hafnad: { label: "Hafnað", tone: "bad" },
 };
 
-export type ReqType = "standsetning" | "vidgerd" | "flutningur" | "annad";
+export type ReqType = "standsetning" | "vidgerd" | "flutningur" | "samsetning" | "uppsetning" | "annad";
 export const REQ_TYPE: Record<ReqType, string> = {
   standsetning: "Standsetning",
   vidgerd: "Viðgerð",
   flutningur: "Flutningur",
+  samsetning: "Samsetning nýrrar einingar",
+  uppsetning: "Uppsetning á verkstað",
   annad: "Annað",
 };
+
+/** Only "standsetning" (unit intake/return) uses the gated 4-step Vettvangur flow — every other
+ * type (assembly, on-site setup, repairs, transport, other) uses the simple one-step flow. */
+export function isIntakeReqType(type: string): boolean {
+  return type === "standsetning";
+}
 
 export type Priority = "lag" | "medal" | "ha";
 export const PRIORITY: Record<Priority, string> = { lag: "Lág", medal: "Meðal", ha: "Há" };
@@ -91,12 +99,16 @@ export const QUOTE_STATUS: Record<QuoteStatus, { label: string; tone: Tone }> = 
   hafnad: { label: "Hafnað", tone: "bad" },
 };
 
-export type MaintType = "thrif" | "vidgerd" | "skodun" | "uppfaersla";
+export type MaintType = "thrif" | "vidgerd" | "skodun" | "uppfaersla" | "samsetning" | "uppsetning" | "flutningur" | "annad";
 export const MAINT_TYPE: Record<MaintType, string> = {
   thrif: "Þrif",
   vidgerd: "Viðgerð",
   skodun: "Skoðun",
   uppfaersla: "Uppfærsla",
+  samsetning: "Samsetning nýrrar einingar",
+  uppsetning: "Uppsetning á verkstað",
+  flutningur: "Flutningur",
+  annad: "Annað",
 };
 
 export type Role = "admin" | "sala" | "thjonusta" | "lager" | "lesandi";

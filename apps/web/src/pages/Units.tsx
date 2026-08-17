@@ -50,21 +50,20 @@ export function Units() {
             {filtered.map((u) => (
               <BlueprintButton key={u.id} onClick={() => nav(`/detail/units/${u.id}`)} style={{ display: "flex", flexDirection: "column" }}>
                 <div
-                  className={u.coverPhotoUrl ? "duotone" : undefined}
                   style={{
                     height: 110,
                     borderBottom: "1px solid var(--color-divider)",
                     position: "relative",
                     overflow: "hidden",
                     background: u.coverPhotoUrl
-                      ? undefined
+                      ? "var(--color-neutral-200)"
                       : "repeating-linear-gradient(45deg, transparent, transparent 7px, var(--color-neutral-200) 7px, var(--color-neutral-200) 8px)",
                     display: "grid",
                     placeItems: "center",
                   }}
                 >
                   {u.coverPhotoUrl ? (
-                    <img src={u.coverPhotoUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img src={u.coverPhotoUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }} />
                   ) : null}
                   <div style={{ position: "relative", border: "1px solid var(--color-accent-600)", background: "var(--color-bg)", padding: "8px 18px", fontFamily: "var(--font-heading)", fontSize: 26, lineHeight: 1, color: "var(--color-accent-800)" }}>
                     {u.sizeM2} m²

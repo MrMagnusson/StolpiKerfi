@@ -69,3 +69,49 @@ vettvangurRouter.post(
     res.json({ unit, request: updatedRequest, damage: damageRow });
   }),
 );
+
+// Simple (non-intake) job completion — samsetning/uppsetning/viðgerð/flutningur/annað. Unlike
+// /complete above, this does NOT touch the unit's rental status (the job isn't about a unit
+// returning to the available pool); it just closes the request and, if a unit is attached, logs
+// a Viðhaldssaga entry with whatever notes/photos were taken, and optionally moves the unit's
+// location (relevant for on-site setup/assembly work).
+const completeSimpleSchema = z.object({
+  note: z.string().nullable().optional(),
+  photos: z.array(z.string()).optional(),
+  location: z.string().nullable().optional(),
+});
+
+vettvangurRouter.post(
+  "/requests/:id/complete-simple",
+  asyncHandler(async (req, res) => {
+    const parsed = completeSimpleSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+    const request = await prisma.serviceRequest.findUnique({ where: { id: req.params.id } });
+    if (!request) return res.status(404).json({ error: "Beiðni fannst ekki" });
+    if (request.status === "lokid") return res.status(409).json({ error: "Beiðni er þegar lokið." });
+
+    const { note, photos, location } = parsed.data;
+
+    const updatedRequest = await prisma.serviceRequest.update({ where: { id: request.id }, data: { status: "lokid" } });
+
+    let maintenanceRow = null;
+    if (request.unitId) {
+      maintenanceRow = await prisma.maintenanceEntry.create({
+        data: {
+          unitId: request.unitId,
+          date: iso(0),
+          type: request.type,
+          note: note || null,
+          photos: photos ?? [],
+          by: request.assignedTo ?? null,
+        },
+      });
+      if (location) {
+        await prisma.unit.update({ where: { id: request.unitId }, data: { location } });
+      }
+    }
+
+    res.json({ request: updatedRequest, maintenance: maintenanceRow });
+  }),
+);
