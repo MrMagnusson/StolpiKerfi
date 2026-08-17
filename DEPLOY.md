@@ -43,6 +43,12 @@ virkja "Auto Deploy" í Settings → Source á hverri þjónustu.
   demo-stigið; skipta yfir í `prisma migrate dev/deploy` með alvöru migration-skrám áður en þetta fer í
   raunverulega notkun.
 - Verkefnið `illustrious-elegance` í Railway er gamalt/ónotað (biluð fyrsta tilraun) — má eyða.
+- **Redeploy af eldri (ekki-nýjustu) færslu í "History" listanum er ekki alltaf í boði** — Railway
+  býður stundum ekki upp á "Redeploy" á færslum sem eru merktar "REMOVED" lengra niðri í listanum.
+  Ef það gerist: passa að ýta alltaf á "Redeploy" á **efstu/nýjustu** færslunni í listanum (þeirri sem
+  samsvarar nýjasta `git push`-inu), ekki eldri færslu — annars getur eldri útgáfa óvart orðið "Active"
+  aftur ofan á nýrri breytingu. Ef nýjasta commitið vantar alveg í listann, þarf nýtt `git push` til að
+  fá ferska færslu efst sem hægt er að deploya.
 
 ## Kostnaður
 Railway "Trial" — $5 í inneign, 30 daga. Eftir það þarf greiðsluupplýsingar til að halda þjónustunum
