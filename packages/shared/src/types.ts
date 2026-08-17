@@ -101,6 +101,7 @@ export interface ServiceRequest {
   description: string | null;
   assignedTo: string | null;
   dueDate: string | null;
+  photos: string[];
 }
 
 export interface Contract {
@@ -160,6 +161,7 @@ export interface Damage {
   costIsk: number;
   rebilled: boolean;
   status: DamageStatus;
+  photos: string[];
 }
 
 export interface MaintenanceEntry {

@@ -99,12 +99,14 @@ export async function uploadPhoto(blob: Blob): Promise<string> {
 
 export interface CompletePayload {
   location: string;
-  damage?: {
+  photos?: string[];
+  damages?: {
     description: string;
     cause: string;
     responsible?: string | null;
     costIsk: number;
-  } | null;
+    photos?: string[];
+  }[];
 }
 
 export function completeRequest(id: string, payload: CompletePayload) {

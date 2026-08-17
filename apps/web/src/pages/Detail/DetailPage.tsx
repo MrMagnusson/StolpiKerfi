@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Btn, Field, Input, Select, Textarea, Chip, BlueprintBox } from "@stolpi/ui";
-import type { Unit } from "@stolpi/shared";
+import { parseIntakePhotos, type Unit } from "@stolpi/shared";
 import { fieldConfig, KIND_KICKER, KIND_DEFAULTS } from "./fieldConfig.js";
 import { buildPanels } from "./panels.js";
 import { PhotoSlots } from "./PhotoSlots.js";
+import { PhotoLightbox, type LightboxImage } from "./PhotoLightbox.js";
 import { useCreate, useItem, useList, useRemove, useUpdate } from "../../api.js";
 import { PageHeader } from "../../layout/PageHeader.js";
 
@@ -31,6 +32,7 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
   const remove = useRemove(kind);
 
   const [draft, setDraft] = useState<Record<string, unknown> | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (isNew) {
@@ -82,6 +84,14 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
   const kicker = KIND_KICKER[kind] || kind;
   const title = (draft as any).code || (draft as any).name || (draft as any).title || (draft as any).subject || (draft as any).number || `Nýtt — ${kicker}`;
   const panels = isNew ? [] : buildPanels(kind, draft, { units, projects, damages, maintenance, requests, docs, contracts, deals, activities, contacts });
+
+  const galleryTitle = kind === "requests" ? "Myndir úr móttöku" : kind === "damages" ? "Myndir af skemmd" : null;
+  const galleryImages: LightboxImage[] =
+    kind === "requests"
+      ? parseIntakePhotos(((draft as any).photos as string[]) || []).map((p) => ({ label: p.label, url: p.url }))
+      : kind === "damages"
+        ? (((draft as any).photos as string[]) || []).map((url) => ({ label: "Mynd af skemmd", url }))
+        : [];
 
   return (
     <>
@@ -164,21 +174,54 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
                 <h2 style={{ fontSize: 19, margin: 0 }}>{p.title}</h2>
                 <span style={{ fontSize: 11, letterSpacing: ".12em", textTransform: "uppercase", opacity: 0.5 }}>{p.hint}</span>
               </div>
-              {p.rows.map((r, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, padding: "9px 0", borderTop: "1px solid var(--color-divider)" }}>
-                  <span style={{ minWidth: 0 }}>
-                    <span style={{ display: "block", fontSize: 13.5 }}>{r.label}</span>
-                    <span style={{ display: "block", fontSize: 12, opacity: 0.6 }}>{r.note}</span>
-                  </span>
-                  <span style={{ fontFamily: "var(--font-heading)", fontSize: 15, whiteSpace: "nowrap" }}>{r.value}</span>
-                </div>
-              ))}
+              {p.rows.map((r, i) => {
+                const rowInner = (
+                  <>
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: "block", fontSize: 13.5 }}>{r.label}</span>
+                      <span style={{ display: "block", fontSize: 12, opacity: 0.6 }}>{r.note}</span>
+                    </span>
+                    <span style={{ fontFamily: "var(--font-heading)", fontSize: 15, whiteSpace: "nowrap" }}>{r.value}</span>
+                  </>
+                );
+                return r.to ? (
+                  <button
+                    key={i}
+                    onClick={() => nav(r.to!)}
+                    style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, padding: "9px 0", borderTop: "1px solid var(--color-divider)", width: "100%", background: "none", border: 0, borderTopWidth: 1, borderTopStyle: "solid", borderTopColor: "var(--color-divider)", textAlign: "left", font: "inherit", color: "inherit", cursor: "pointer" }}
+                  >
+                    {rowInner}
+                  </button>
+                ) : (
+                  <div key={i} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, padding: "9px 0", borderTop: "1px solid var(--color-divider)" }}>
+                    {rowInner}
+                  </div>
+                );
+              })}
               {p.isEmpty ? <div style={{ border: "1px dashed var(--color-divider)", padding: 16, textAlign: "center", fontSize: 12.5, opacity: 0.6, marginTop: 8 }}>{p.emptyText}</div> : null}
             </BlueprintBox>
           ))}
+          {galleryTitle && galleryImages.length ? (
+            <BlueprintBox style={{ padding: "18px 20px" }}>
+              <h2 style={{ fontSize: 19, margin: "0 0 10px" }}>{galleryTitle}</h2>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))", gap: 10 }}>
+                {galleryImages.map((img, i) => (
+                  <button key={i} onClick={() => setLightboxIndex(i)} style={{ padding: 0, border: 0, background: "none", cursor: "zoom-in", display: "flex", flexDirection: "column", gap: 4, font: "inherit" }}>
+                    <div style={{ height: 84, background: "var(--color-neutral-200)", overflow: "hidden" }}>
+                      <img src={img.url} alt={img.label} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                    </div>
+                    <span style={{ fontSize: 10.5, opacity: 0.65 }}>{img.label}</span>
+                  </button>
+                ))}
+              </div>
+            </BlueprintBox>
+          ) : null}
           {kind === "units" && !isNew ? <PhotoSlots unit={draft as unknown as Unit} onSave={savePhoto} /> : null}
         </div>
       </div>
+      {lightboxIndex !== null ? (
+        <PhotoLightbox images={galleryImages} index={lightboxIndex} onClose={() => setLightboxIndex(null)} onNavigate={setLightboxIndex} />
+      ) : null}
     </>
   );
 }

@@ -94,6 +94,7 @@ export const SCHEMAS: Record<string, z.AnyZodObject> = {
     description: z.string().nullable().optional(),
     assignedTo: z.string().nullable().optional(),
     dueDate: z.string().nullable().optional(),
+    photos: z.array(z.string()).optional(),
   }).partial({ title: true }),
 
   contracts: z.object({
@@ -148,6 +149,7 @@ export const SCHEMAS: Record<string, z.AnyZodObject> = {
     costIsk: z.number().nonnegative().optional(),
     rebilled: z.boolean().optional(),
     status: z.string().optional(),
+    photos: z.array(z.string()).optional(),
   }).partial({ unitId: true, date: true, description: true, cause: true }),
 
   maintenance: z.object({

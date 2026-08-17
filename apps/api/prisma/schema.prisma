@@ -158,6 +158,9 @@ model ServiceRequest {
   description String?
   assignedTo  String?
   dueDate     String?
+  // Móttökumyndir af Vettvangur-ferlinu, merktar "hópur::slóð" (t.d. "koma::/uploads/x.jpg") —
+  // sjá packages/shared/src/intakeFlow.ts formatIntakePhoto/parseIntakePhotos.
+  photos      String[]  @default([])
 }
 
 model Contract {
@@ -234,6 +237,7 @@ model Damage {
   costIsk     Float     @default(0)
   rebilled    Boolean   @default(false)
   status      String    @default("skrad")
+  photos      String[]  @default([])
 }
 
 model MaintenanceEntry {

@@ -11,6 +11,8 @@ export interface PanelRow {
   label: string;
   note: string;
   value: string;
+  /** When set, the row navigates to this route on click (e.g. the damage's/request's own detail page). */
+  to?: string;
 }
 export interface Panel {
   title: string;
@@ -47,8 +49,9 @@ export function buildPanels(kind: string, draft: any, d: PanelData): Panel[] {
         const contractNo = d.contracts.find((c) => c.id === x.contractId)?.number;
         return {
           label: x.description,
-          note: `${x.date} · ${DAMAGE_CAUSE[x.cause]}: ${x.responsible || "—"} · ${DAMAGE_STATUS[x.status].label}${x.rebilled ? " · endurkrafið" : " · á Stólpa"}${contractNo ? ` · ${contractNo}` : ""}`,
+          note: `${x.date} · ${DAMAGE_CAUSE[x.cause]}: ${x.responsible || "—"} · ${DAMAGE_STATUS[x.status].label}${x.rebilled ? " · endurkrafið" : " · á Stólpa"}${contractNo ? ` · ${contractNo}` : ""}${x.photos?.length ? ` · ${x.photos.length} mynd${x.photos.length === 1 ? "" : "ir"}` : ""}`,
           value: short(x.costIsk),
+          to: `/detail/damages/${x.id}`,
         };
       }),
       isEmpty: !dmg.length,
@@ -63,9 +66,14 @@ export function buildPanels(kind: string, draft: any, d: PanelData): Panel[] {
     });
     const reqs = d.requests.filter((r) => r.unitId === draft.id);
     panels.push({
-      title: "Opnar beiðnir",
+      title: "Beiðnir",
       hint: "",
-      rows: reqs.map((r) => ({ label: r.title, note: `${REQ_TYPE[r.type]} · ${r.assignedTo ?? "—"}`, value: REQ_STATUS[r.status].label })),
+      rows: reqs.map((r) => ({
+        label: r.title,
+        note: `${REQ_TYPE[r.type]} · ${r.assignedTo ?? "—"}${r.photos?.length ? ` · ${r.photos.length} mynd${r.photos.length === 1 ? "" : "ir"}` : ""}`,
+        value: REQ_STATUS[r.status].label,
+        to: `/detail/requests/${r.id}`,
+      })),
       isEmpty: !reqs.length,
       emptyText: "Engar beiðnir tengdar einingunni.",
     });
@@ -130,6 +138,29 @@ export function buildPanels(kind: string, draft: any, d: PanelData): Panel[] {
       emptyText: "",
     });
     panels.push({ title: "Skjöl", hint: "", rows: [], isEmpty: true, emptyText: "Dragðu undirritaðan samning hingað (PDF)" });
+
+    const relReqs = d.requests.filter((r) => r.contractId === draft.id);
+    const relDamages = d.damages.filter((x) => x.contractId === draft.id);
+    panels.push({
+      title: "Móttökur og skemmdir",
+      hint: relDamages.length ? `Tjónakostnaður ${short(relDamages.reduce((s, x) => s + (x.costIsk || 0), 0))}` : "",
+      rows: [
+        ...relReqs.map((r) => ({
+          label: r.title,
+          note: `${REQ_TYPE[r.type]} · ${REQ_STATUS[r.status].label}${r.photos?.length ? ` · ${r.photos.length} mynd${r.photos.length === 1 ? "" : "ir"}` : ""}`,
+          value: r.dueDate ?? "—",
+          to: `/detail/requests/${r.id}`,
+        })),
+        ...relDamages.map((x) => ({
+          label: x.description,
+          note: `${x.date} · ${DAMAGE_CAUSE[x.cause]}${x.photos?.length ? ` · ${x.photos.length} mynd${x.photos.length === 1 ? "" : "ir"}` : ""}`,
+          value: short(x.costIsk),
+          to: `/detail/damages/${x.id}`,
+        })),
+      ],
+      isEmpty: !relReqs.length && !relDamages.length,
+      emptyText: "Engar móttökur eða skemmdir skráðar á þennan samning.",
+    });
   }
 
   if (kind === "deals") {

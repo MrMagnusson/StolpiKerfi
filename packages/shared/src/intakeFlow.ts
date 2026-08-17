@@ -54,3 +54,36 @@ export const INTAKE_PHOTO_MIN: Record<string, number> = {
   astand_inni: 1,
   astand_uti: 1,
 };
+
+/** Human labels for the intake report's photo groups — shared between the writer (Vettvangur's
+ * JobFlow, which tags each upload) and the reader (the desktop request detail page). */
+export const INTAKE_PHOTO_GROUP_LABELS: Record<string, string> = {
+  koma: "Við komu",
+  standsett: "Eftir standsetningu",
+  astand_inni: "Núverandi ástand — að innan",
+  astand_uti: "Núverandi ástand — að utan",
+  yfirlit: "Yfirlitsmynd",
+};
+
+const INTAKE_PHOTO_SEP = "::";
+
+/** Tags an uploaded photo URL with its group so ServiceRequest.photos (a flat string[]) can be
+ * grouped back into a labeled gallery — see parseIntakePhotos. */
+export function formatIntakePhoto(group: string, url: string): string {
+  return `${group}${INTAKE_PHOTO_SEP}${url}`;
+}
+
+export interface IntakePhoto {
+  group: string;
+  label: string;
+  url: string;
+}
+
+export function parseIntakePhotos(entries: string[]): IntakePhoto[] {
+  return entries.map((e) => {
+    const idx = e.indexOf(INTAKE_PHOTO_SEP);
+    const group = idx >= 0 ? e.slice(0, idx) : "";
+    const url = idx >= 0 ? e.slice(idx + INTAKE_PHOTO_SEP.length) : e;
+    return { group, label: INTAKE_PHOTO_GROUP_LABELS[group] || "Mynd", url };
+  });
+}

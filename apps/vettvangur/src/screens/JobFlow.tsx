@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  DAMAGE_CAUSE, INTAKE_CHECKS, INTAKE_STEPS, TONES, isIntakeReqType, type CheckMark,
+  DAMAGE_CAUSE, INTAKE_CHECKS, INTAKE_STEPS, TONES, formatIntakePhoto, isIntakeReqType, type CheckMark,
 } from "@stolpi/shared";
 import { useRequests, useRequestsInvalidate, completeRequest } from "../api.js";
 import { loadProgress, saveProgress, clearProgress, type FlowProgress } from "../progress.js";
@@ -54,8 +54,10 @@ export function JobFlow() {
     if (!stepKey) return [];
     if (stepKey === "mottaka") return [{ key: "koma", title: "Mynd við komu", hint: "Yfirlitsmynd af einingunni eins og hún kom úr flutningi.", min: 1 }];
     if (stepKey === "astand") {
+      // Issue photos are captured inline per checklist item below (see the "issue" expand block) —
+      // this shared group only covers the no-issue case (optional overview shots).
       return hasIssue
-        ? [{ key: "skemmd", title: "Myndir af skemmd", hint: "Nærmynd af hverjum lið sem er merktur með athugasemd.", min: 1 }]
+        ? []
         : [{ key: "yfirlit", title: "Yfirlitsmyndir (valfrjálst)", hint: "Engin athugasemd skráð — myndir eru valfrjálsar á þessu skrefi.", min: 0 }];
     }
     if (stepKey === "standsetning") return [{ key: "standsett", title: "Mynd eftir standsetningu", hint: "Sýnir eininguna þrifna og fullbúna.", min: 1 }];
@@ -76,7 +78,11 @@ export function JobFlow() {
     if (stepKey === "mottaka" && ph("koma") < 1) need.push("Mynd af einingu við komu vantar (1 skylda)");
     if (stepKey === "mottaka" && !progress.form.stadsetning) need.push("Staðsetning á lager ekki valin");
     if (stepKey === "astand" && hasIssue) {
-      if (ph("skemmd") < 1) need.push(`Mynd af skemmd vantar — ${checklist.filter((c) => progress.checks[`astand:${c.key}`] === "issue").length} liðir merktir með athugasemd`);
+      const issueItems = checklist.filter((c) => progress.checks[`astand:${c.key}`] === "issue");
+      for (const c of issueItems) {
+        if (!(progress.form[`lysing:${c.key}`] || "").trim()) need.push(`Lýsing vantar — ${c.label}`);
+        if (ph(`skemmd:${c.key}`) < 1) need.push(`Mynd vantar — ${c.label}`);
+      }
       if (!progress.form.orsok) need.push("Velja þarf hver olli skemmdinni");
       if (!progress.form.abyrgd) need.push("Skrá þarf nafn ábyrgðaraðila");
     }
@@ -126,16 +132,26 @@ export function JobFlow() {
     try {
       const issues = (INTAKE_CHECKS.astand || []).filter((c) => progress.checks[`astand:${c.key}`] === "issue");
       const photoCount = Object.values(progress.photos).reduce((n, arr) => n + arr.length, 0);
+      const reportPhotos = [
+        ...(progress.photos.koma || []).map((u) => formatIntakePhoto("koma", u)),
+        ...(progress.photos.standsett || []).map((u) => formatIntakePhoto("standsett", u)),
+        ...(progress.photos.astand_inni || []).map((u) => formatIntakePhoto("astand_inni", u)),
+        ...(progress.photos.astand_uti || []).map((u) => formatIntakePhoto("astand_uti", u)),
+        ...(progress.photos.yfirlit || []).map((u) => formatIntakePhoto("yfirlit", u)),
+      ];
+      // Refurbishment cost is asked once for the whole step (step 3), not per damage — attribute it
+      // to the first damage only so cost-summary panels elsewhere don't multiply it by issue count.
+      const damages = issues.map((c, i) => ({
+        description: (progress.form[`lysing:${c.key}`] || "").trim() || c.label,
+        cause: progress.form.orsok,
+        responsible: progress.form.abyrgd || null,
+        costIsk: i === 0 ? Number(progress.form.kostnadur || 0) : 0,
+        photos: progress.photos[`skemmd:${c.key}`] || [],
+      }));
       const result = await completeRequest(request.id, {
         location: progress.form.stadsetning || request.unit?.location || "",
-        damage: issues.length
-          ? {
-              description: issues.map((c) => c.label).join(", ") + (progress.form.athugasemd ? ` — ${progress.form.athugasemd}` : ""),
-              cause: progress.form.orsok,
-              responsible: progress.form.abyrgd || null,
-              costIsk: Number(progress.form.kostnadur || 0),
-            }
-          : null,
+        photos: reportPhotos,
+        damages,
       });
       clearProgress(request.id);
       invalidate();
@@ -212,21 +228,66 @@ export function JobFlow() {
         {checklist.map((c) => {
           const v = progress.checks[`${stepKey}:${c.key}`];
           const tone = v === "ok" ? TONES.ok : v === "issue" ? TONES.warn : null;
-          const note = stepKey === "astand" ? (v === "issue" ? "Athugasemd — krefst myndar" : v === "ok" ? "Í lagi" : `${c.note} · smelltu: í lagi → athugasemd`) : c.note;
+          const note = stepKey === "astand" ? (v === "issue" ? "Athugasemd — lýsing og mynd að neðan" : v === "ok" ? "Í lagi" : `${c.note} · smelltu: í lagi → athugasemd`) : c.note;
+          const itemPhotos = progress.photos[`skemmd:${c.key}`] || [];
           return (
-            <button
-              key={c.key}
-              onClick={() => toggleCheck(c.key)}
-              style={{ display: "flex", gap: 13, alignItems: "center", width: "100%", minHeight: 56, padding: "11px 13px", border: `1px solid ${tone ? tone.fg : "var(--color-divider)"}`, background: tone ? tone.bg : "none", cursor: "pointer", font: "inherit", color: "var(--color-text)" }}
-            >
-              <span style={{ width: 26, height: 26, flex: "none", display: "grid", placeItems: "center", border: `1px solid ${tone ? tone.fg : "var(--color-neutral-400)"}`, color: tone ? tone.fg : "transparent", fontSize: 15, fontFamily: "var(--font-heading)" }}>
-                {v === "ok" ? "✓" : v === "issue" ? "!" : ""}
-              </span>
-              <span style={{ flex: 1, textAlign: "left" }}>
-                <span style={{ display: "block", fontSize: 15 }}>{c.label}</span>
-                <span style={{ display: "block", fontSize: 12.5, opacity: 0.6 }}>{note}</span>
-              </span>
-            </button>
+            <div key={c.key} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <button
+                onClick={() => toggleCheck(c.key)}
+                style={{ display: "flex", gap: 13, alignItems: "center", width: "100%", minHeight: 56, padding: "11px 13px", border: `1px solid ${tone ? tone.fg : "var(--color-divider)"}`, background: tone ? tone.bg : "none", cursor: "pointer", font: "inherit", color: "var(--color-text)" }}
+              >
+                <span style={{ width: 26, height: 26, flex: "none", display: "grid", placeItems: "center", border: `1px solid ${tone ? tone.fg : "var(--color-neutral-400)"}`, color: tone ? tone.fg : "transparent", fontSize: 15, fontFamily: "var(--font-heading)" }}>
+                  {v === "ok" ? "✓" : v === "issue" ? "!" : ""}
+                </span>
+                <span style={{ flex: 1, textAlign: "left" }}>
+                  <span style={{ display: "block", fontSize: 15 }}>{c.label}</span>
+                  <span style={{ display: "block", fontSize: 12.5, opacity: 0.6 }}>{note}</span>
+                </span>
+              </button>
+
+              {stepKey === "astand" && v === "issue" ? (
+                <div style={{ marginLeft: 13, padding: "12px 13px", border: `1px solid ${TONES.warn.fg}`, display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div className="field" style={{ margin: 0 }}>
+                    <label>Lýsing á skemmd</label>
+                    <input
+                      className="input"
+                      style={{ minHeight: 42 }}
+                      placeholder="Stutt lýsing á skemmdinni"
+                      value={progress.form[`lysing:${c.key}`] || ""}
+                      onChange={(e) => setField(`lysing:${c.key}`, e.target.value)}
+                    />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    {itemPhotos.map((src, i) => (
+                      <div key={i} style={{ height: 90, position: "relative", overflow: "hidden", background: "var(--color-neutral-200)" }}>
+                        <img src={src} alt="Mynd af skemmd" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+                        <button
+                          onClick={() => removePhoto(`skemmd:${c.key}`, i)}
+                          style={{ position: "absolute", right: 4, top: 4, zIndex: 3, width: 24, height: 24, border: "1px solid var(--color-divider)", background: "var(--color-bg)", cursor: "pointer", font: "inherit", fontSize: 12, lineHeight: 1, padding: 0 }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                    <label style={{ height: 90, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, border: `1px dashed ${itemPhotos.length ? "var(--color-divider)" : "var(--color-accent)"}`, color: "var(--color-accent-800)", cursor: "pointer" }}>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) addPhoto(`skemmd:${c.key}`, file);
+                          e.target.value = "";
+                        }}
+                        style={{ display: "none" }}
+                      />
+                      <span style={{ fontSize: 18, lineHeight: 1 }}>＋</span>
+                      <span style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase" }}>Taka mynd</span>
+                    </label>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           );
         })}
 
@@ -262,10 +323,6 @@ export function JobFlow() {
             <div className="field" style={{ margin: 0 }}>
               <label>Ábyrgðaraðili (nafn / fyrirtæki)</label>
               <input className="input" style={{ minHeight: 46 }} placeholder="t.d. Verkís hf. — Jón Jónsson" value={progress.form.abyrgd || ""} onChange={(e) => setField("abyrgd", e.target.value)} />
-            </div>
-            <div className="field" style={{ margin: 0 }}>
-              <label>Athugasemd</label>
-              <input className="input" style={{ minHeight: 46 }} placeholder="Stutt lýsing á skemmd" value={progress.form.athugasemd || ""} onChange={(e) => setField("athugasemd", e.target.value)} />
             </div>
           </>
         ) : null}

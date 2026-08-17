@@ -22,14 +22,22 @@ vettvangurRouter.get(
 
 const completeSchema = z.object({
   location: z.string().min(1),
-  damage: z
-    .object({
-      description: z.string().min(1),
-      cause: z.string().min(1),
-      responsible: z.string().nullable().optional(),
-      costIsk: z.number().nonnegative().default(0),
-    })
-    .nullable()
+  // Every photo taken during the flow, tagged "group::url" (see shared/intakeFlow.ts) — persisted
+  // on the request itself as the full intake report, and used here to seed the unit's 4 legacy
+  // single-photo slots so the existing Ástandsmyndir panel shows something immediately.
+  photos: z.array(z.string()).optional(),
+  // One entry per "ástand" checklist item flagged with an issue — each carries its own
+  // description/photos now (previously a single combined damage per intake).
+  damages: z
+    .array(
+      z.object({
+        description: z.string().min(1),
+        cause: z.string().min(1),
+        responsible: z.string().nullable().optional(),
+        costIsk: z.number().nonnegative().default(0),
+        photos: z.array(z.string()).optional(),
+      }),
+    )
     .optional(),
 });
 
@@ -43,31 +51,46 @@ vettvangurRouter.post(
     if (!request || !request.unitId) return res.status(404).json({ error: "Beiðni fannst ekki" });
     if (request.status === "lokid") return res.status(409).json({ error: "Beiðni er þegar lokið." });
 
-    const { location, damage } = parsed.data;
+    const { location, photos = [], damages = [] } = parsed.data;
+    const pick = (group: string) => photos.find((p) => p.startsWith(`${group}::`))?.slice(group.length + 2);
 
     const [unit, updatedRequest] = await prisma.$transaction([
-      prisma.unit.update({ where: { id: request.unitId }, data: { status: "available", location } }),
-      prisma.serviceRequest.update({ where: { id: request.id }, data: { status: "lokid" } }),
+      prisma.unit.update({
+        where: { id: request.unitId },
+        data: {
+          status: "available",
+          location,
+          photoMottaka: pick("koma"),
+          photoStandsett: pick("standsett"),
+          photoAstand: pick("astand_uti") ?? pick("astand_inni"),
+          photoSkemmd: damages[0]?.photos?.[0],
+        },
+      }),
+      prisma.serviceRequest.update({ where: { id: request.id }, data: { status: "lokid", photos } }),
     ]);
 
-    const damageRow = damage
-      ? await prisma.damage.create({
+    const damageRows = [];
+    for (const d of damages) {
+      damageRows.push(
+        await prisma.damage.create({
           data: {
             unitId: request.unitId,
             date: iso(0),
-            description: damage.description,
-            cause: damage.cause,
-            responsible: damage.responsible ?? null,
+            description: d.description,
+            cause: d.cause,
+            responsible: d.responsible ?? null,
             projectId: request.projectId,
             contractId: request.contractId,
-            costIsk: damage.costIsk,
-            rebilled: damage.cause === "vidskiptavinur",
+            costIsk: d.costIsk,
+            photos: d.photos ?? [],
+            rebilled: d.cause === "vidskiptavinur",
             status: "skrad",
           },
-        })
-      : null;
+        }),
+      );
+    }
 
-    res.json({ unit, request: updatedRequest, damage: damageRow });
+    res.json({ unit, request: updatedRequest, damages: damageRows });
   }),
 );
 
