@@ -17,6 +17,7 @@ export interface Unit {
   photoStandsett: string | null;
   photoSkemmd: string | null;
   photoAstand: string | null;
+  coverPhotoUrl: string | null;
 }
 
 export interface Project {

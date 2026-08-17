@@ -50,19 +50,28 @@ export function Units() {
             {filtered.map((u) => (
               <BlueprintButton key={u.id} onClick={() => nav(`/detail/units/${u.id}`)} style={{ display: "flex", flexDirection: "column" }}>
                 <div
+                  className={u.coverPhotoUrl ? "duotone" : undefined}
                   style={{
                     height: 110,
                     borderBottom: "1px solid var(--color-divider)",
                     position: "relative",
-                    background: "repeating-linear-gradient(45deg, transparent, transparent 7px, var(--color-neutral-200) 7px, var(--color-neutral-200) 8px)",
+                    overflow: "hidden",
+                    background: u.coverPhotoUrl
+                      ? undefined
+                      : "repeating-linear-gradient(45deg, transparent, transparent 7px, var(--color-neutral-200) 7px, var(--color-neutral-200) 8px)",
                     display: "grid",
                     placeItems: "center",
                   }}
                 >
-                  <div style={{ border: "1px solid var(--color-accent-600)", background: "var(--color-bg)", padding: "8px 18px", fontFamily: "var(--font-heading)", fontSize: 26, lineHeight: 1, color: "var(--color-accent-800)" }}>
+                  {u.coverPhotoUrl ? (
+                    <img src={u.coverPhotoUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : null}
+                  <div style={{ position: "relative", border: "1px solid var(--color-accent-600)", background: "var(--color-bg)", padding: "8px 18px", fontFamily: "var(--font-heading)", fontSize: 26, lineHeight: 1, color: "var(--color-accent-800)" }}>
                     {u.sizeM2} m²
                   </div>
-                  <span style={{ position: "absolute", left: 10, top: 9, fontSize: 11, letterSpacing: ".14em", opacity: 0.6 }}>{u.location}</span>
+                  <span style={{ position: "absolute", left: 10, top: 9, fontSize: 11, letterSpacing: ".14em", opacity: 0.6, color: u.coverPhotoUrl ? "var(--color-bg)" : undefined, textShadow: u.coverPhotoUrl ? "0 1px 3px rgba(0,0,0,.6)" : undefined }}>
+                    {u.location}
+                  </span>
                 </div>
                 <div style={{ padding: "13px 15px 15px", display: "flex", flexDirection: "column", gap: 9 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>

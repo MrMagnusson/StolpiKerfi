@@ -17,6 +17,7 @@ export const SCHEMAS: Record<string, z.AnyZodObject> = {
     photoStandsett: z.string().nullable().optional(),
     photoSkemmd: z.string().nullable().optional(),
     photoAstand: z.string().nullable().optional(),
+    coverPhotoUrl: z.string().nullable().optional(),
   }).partial({ code: true, sizeM2: true, location: true }),
 
   projects: z.object({

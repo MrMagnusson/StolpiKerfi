@@ -35,6 +35,8 @@ model Unit {
   photoStandsett String?
   photoSkemmd    String?
   photoAstand    String?
+  // Valin forsíðumynd (ein af myndunum fyrir ofan) sem birtist á kortinu í Einingar-yfirlitinu.
+  coverPhotoUrl  String?
 
   damages     Damage[]
   maintenance MaintenanceEntry[]

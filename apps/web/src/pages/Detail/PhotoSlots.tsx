@@ -2,11 +2,14 @@
 // 4 photo slots (við móttöku / eftir standsetningu / nærmynd af skemmd / núverandi ástand). The
 // prototype used a bundled <image-slot> custom element; here each slot is a plain upload + preview
 // wired to POST /api/uploads via downscaleAndUpload, with the URL saved onto the Unit record.
+// Extended with: a "forsíðumynd" (cover photo) pick shown on the Einingar list cards, and a
+// click-to-open lightbox that steps through whichever slots are populated.
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BlueprintBox, Btn } from "@stolpi/ui";
 import type { Unit } from "@stolpi/shared";
 import { downscaleAndUpload } from "../../photo.js";
+import { PhotoLightbox, type LightboxImage } from "./PhotoLightbox.js";
 
 const SLOTS: { key: keyof Pick<Unit, "photoMottaka" | "photoStandsett" | "photoSkemmd" | "photoAstand">; label: string }[] = [
   { key: "photoMottaka", label: "Við móttöku" },
@@ -15,15 +18,50 @@ const SLOTS: { key: keyof Pick<Unit, "photoMottaka" | "photoStandsett" | "photoS
   { key: "photoAstand", label: "Núverandi ástand" },
 ];
 
-function Slot({ label, url, busy, onFile, onRemove }: { label: string; url: string | null; busy: boolean; onFile: (f: File) => void; onRemove: () => void }) {
+function Slot({
+  label,
+  url,
+  busy,
+  isCover,
+  onFile,
+  onRemove,
+  onOpen,
+  onSetCover,
+}: {
+  label: string;
+  url: string | null;
+  busy: boolean;
+  isCover: boolean;
+  onFile: (f: File) => void;
+  onRemove: () => void;
+  onOpen: () => void;
+  onSetCover: () => void;
+}) {
   return (
     <div>
-      <div style={{ fontSize: 11, letterSpacing: ".1em", textTransform: "uppercase", opacity: 0.6, marginBottom: 6 }}>{label}</div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+        <div style={{ fontSize: 11, letterSpacing: ".1em", textTransform: "uppercase", opacity: 0.6 }}>{label}</div>
+        {url ? (
+          <button
+            onClick={onSetCover}
+            title={isCover ? "Þetta er forsíðumyndin" : "Nota sem forsíðumynd"}
+            style={{ border: "none", background: "none", cursor: "pointer", padding: 0, fontSize: 14, color: isCover ? "var(--color-accent)" : "var(--color-neutral-500)" }}
+          >
+            {isCover ? "★ Forsíðumynd" : "☆ Velja sem forsíðu"}
+          </button>
+        ) : null}
+      </div>
       <div className="blueprint duotone" style={{ height: 150, position: "relative", overflow: "hidden" }}>
         <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
         {url ? (
           <>
-            <img src={url} alt={label} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <button
+              onClick={onOpen}
+              style={{ width: "100%", height: "100%", border: 0, padding: 0, background: "none", cursor: "zoom-in", display: "block" }}
+              aria-label={`Skoða mynd: ${label}`}
+            >
+              <img src={url} alt={label} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            </button>
             <button
               onClick={onRemove}
               disabled={busy}
@@ -56,6 +94,7 @@ function Slot({ label, url, busy, onFile, onRemove }: { label: string; url: stri
 
 export function PhotoSlots({ unit, onSave }: { unit: Unit; onSave: (field: string, url: string | null) => void }) {
   const [busyField, setBusyField] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const nav = useNavigate();
 
   const handleFile = async (field: string, file: File) => {
@@ -63,12 +102,21 @@ export function PhotoSlots({ unit, onSave }: { unit: Unit; onSave: (field: strin
     try {
       const url = await downscaleAndUpload(file);
       onSave(field, url);
+      // First photo uploaded on a unit with no cover yet becomes the cover automatically.
+      if (!unit.coverPhotoUrl) onSave("coverPhotoUrl", url);
     } catch (e) {
       alert((e as Error).message);
     } finally {
       setBusyField(null);
     }
   };
+
+  const handleRemove = (field: string, url: string | null) => {
+    onSave(field, null);
+    if (url && unit.coverPhotoUrl === url) onSave("coverPhotoUrl", null);
+  };
+
+  const populated: LightboxImage[] = SLOTS.filter((s) => unit[s.key]).map((s) => ({ label: s.label, url: unit[s.key] as string }));
 
   return (
     <BlueprintBox style={{ padding: "18px 20px" }}>
@@ -77,20 +125,30 @@ export function PhotoSlots({ unit, onSave }: { unit: Unit; onSave: (field: strin
         <span style={{ fontSize: 11, letterSpacing: ".12em", textTransform: "uppercase", opacity: 0.5 }}>Móttaka og standsetning</span>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-        {SLOTS.map((s) => (
-          <Slot
-            key={s.key}
-            label={s.label}
-            url={unit[s.key]}
-            busy={busyField === s.key}
-            onFile={(f) => handleFile(s.key, f)}
-            onRemove={() => onSave(s.key, null)}
-          />
-        ))}
+        {SLOTS.map((s) => {
+          const url = unit[s.key];
+          return (
+            <Slot
+              key={s.key}
+              label={s.label}
+              url={url}
+              busy={busyField === s.key}
+              isCover={!!url && url === unit.coverPhotoUrl}
+              onFile={(f) => handleFile(s.key, f)}
+              onRemove={() => handleRemove(s.key, url)}
+              onOpen={() => setLightboxIndex(populated.findIndex((p) => p.url === url))}
+              onSetCover={() => onSave("coverPhotoUrl", url)}
+            />
+          );
+        })}
       </div>
       <Btn variant="secondary" onClick={() => nav(`/detail/damages/new?unitId=${unit.id}`)} style={{ width: "100%", marginTop: 14 }}>
         + Skrá skemmd á þessa einingu
       </Btn>
+
+      {lightboxIndex !== null ? (
+        <PhotoLightbox images={populated} index={lightboxIndex} onClose={() => setLightboxIndex(null)} onNavigate={setLightboxIndex} />
+      ) : null}
     </BlueprintBox>
   );
 }
