@@ -15,7 +15,7 @@ export function DataTable<T extends { id: string }>({ columns, rows, emptyText }
         <thead>
           <tr>
             {columns.map((c, i) => (
-              <th key={i} style={{ textAlign: c.align === "right" ? "right" : "left", fontFamily: "var(--font-heading)", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase" }}>
+              <th key={i} style={{ textAlign: c.align === "right" ? "right" : "left" }}>
                 {c.header}
               </th>
             ))}

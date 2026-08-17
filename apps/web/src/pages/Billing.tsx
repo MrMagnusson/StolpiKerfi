@@ -91,7 +91,7 @@ export function Billing() {
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <Btn variant="secondary" onClick={runBilling}>Keyra leigulínur tímabilsins</Btn>
-            <Btn variant="primary" blueprint onClick={exportBC}>Flytja út í Business Central</Btn>
+            <Btn variant="primary" onClick={exportBC}>Flytja út í Business Central</Btn>
           </div>
         </BlueprintBox>
 

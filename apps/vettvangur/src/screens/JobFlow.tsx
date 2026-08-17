@@ -153,7 +153,6 @@ export function JobFlow() {
     return (
       <section style={{ display: "flex", flexDirection: "column", minHeight: 844, padding: "24px 18px", gap: 20, justifyContent: "center" }}>
         <div className="blueprint" style={{ padding: "26px 20px", display: "flex", flexDirection: "column", gap: 14, textAlign: "center" }}>
-          <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
           <div style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--color-accent-700)" }}>Ferli lokið</div>
           <h1 style={{ fontSize: 30, margin: 0, lineHeight: 1.05 }}>{done.code} er tilbúin til leigu</h1>
           <div style={{ fontSize: 14, opacity: 0.7, lineHeight: 1.4 }}>Staða einingarinnar var uppfærð í kerfinu og beiðnin merkt lokið. Myndir og ástandsskrá fylgja einingunni.</div>
@@ -285,7 +284,6 @@ export function JobFlow() {
           const okNow = shots.length >= g.min;
           return (
             <div key={g.key} className="blueprint" style={{ padding: "14px 15px", display: "flex", flexDirection: "column", gap: 11 }}>
-              <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
                 <span style={{ fontFamily: "var(--font-heading)", fontSize: 18 }}>{g.title}</span>
                 <span className="tag" style={{ background: g.min ? (okNow ? TONES.ok.bg : TONES.warn.bg) : TONES.neutral.bg, color: g.min ? (okNow ? TONES.ok.fg : TONES.warn.fg) : TONES.neutral.fg }}>
@@ -295,8 +293,7 @@ export function JobFlow() {
               <div style={{ fontSize: 12.5, opacity: 0.65, lineHeight: 1.35 }}>{g.hint}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 {shots.map((src, i) => (
-                  <div key={i} className="blueprint duotone" style={{ height: 104, position: "relative", overflow: "hidden" }}>
-                    <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+                  <div key={i} className="duotone" style={{ height: 104, position: "relative", overflow: "hidden" }}>
                     <img src={src} alt="Ástandsmynd" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                     <button
                       onClick={() => removePhoto(g.key, i)}
@@ -341,8 +338,7 @@ export function JobFlow() {
           </div>
         ))}
         {requirements.length === 0 ? <div style={{ fontSize: 12.5, color: "#3f6b4d" }}>✓ Öll skilyrði uppfyllt — hægt að staðfesta skrefið.</div> : null}
-        <button className="btn btn-primary blueprint" onClick={next} disabled={requirements.length > 0 || busy} style={{ minHeight: 52, fontSize: 16, width: "100%" }}>
-          <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+        <button className="btn btn-primary" onClick={next} disabled={requirements.length > 0 || busy} style={{ minHeight: 52, fontSize: 16, width: "100%" }}>
           {busy ? "Vinnur…" : progress.step < 3 ? "Staðfesta skref og halda áfram" : "Setja í Tilbúin til leigu"}
         </button>
       </div>

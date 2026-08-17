@@ -87,7 +87,7 @@ export function BcIntegration() {
           </Field>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", paddingTop: 6 }}>
             <Btn variant="secondary" onClick={test}>Prófa tengingu</Btn>
-            <Btn variant="primary" blueprint onClick={sync}>Samstilla núna</Btn>
+            <Btn variant="primary" onClick={sync}>Samstilla núna</Btn>
           </div>
         </BlueprintBox>
 

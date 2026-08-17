@@ -51,8 +51,7 @@ function Slot({
           </button>
         ) : null}
       </div>
-      <div className="blueprint duotone" style={{ height: 150, position: "relative", overflow: "hidden" }}>
-        <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+      <div className="duotone" style={{ height: 150, position: "relative", overflow: "hidden", border: url ? undefined : "1px dashed var(--color-divider)" }}>
         {url ? (
           <>
             <button

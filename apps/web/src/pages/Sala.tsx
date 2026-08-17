@@ -201,12 +201,12 @@ function SalaPlan({ owner }: { owner: string }) {
         <table className="table">
           <thead>
             <tr>
-              <th style={{ fontFamily: "var(--font-heading)", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase" }}>Mánuður</th>
-              <th style={{ textAlign: "right", fontFamily: "var(--font-heading)", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase" }}>Áætlun</th>
-              <th style={{ textAlign: "right", fontFamily: "var(--font-heading)", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase" }}>Raun</th>
-              <th style={{ textAlign: "right", fontFamily: "var(--font-heading)", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase" }}>Frávik</th>
-              <th style={{ textAlign: "right", fontFamily: "var(--font-heading)", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase" }}>% af áætlun</th>
-              <th style={{ textAlign: "right", fontFamily: "var(--font-heading)", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase" }}>Spá</th>
+              <th>Mánuður</th>
+              <th style={{ textAlign: "right" }}>Áætlun</th>
+              <th style={{ textAlign: "right" }}>Raun</th>
+              <th style={{ textAlign: "right" }}>Frávik</th>
+              <th style={{ textAlign: "right" }}>% af áætlun</th>
+              <th style={{ textAlign: "right" }}>Spá</th>
             </tr>
           </thead>
           <tbody>

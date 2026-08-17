@@ -25,7 +25,7 @@ export function PageHeader({ kicker, title, note, search, primary, extra }: Page
           <Input style={{ width: 230 }} placeholder="Leita…" value={search.value} onChange={(e) => search.onChange(e.target.value)} />
         ) : null}
         {primary ? (
-          <Btn variant="primary" blueprint onClick={primary.onClick}>
+          <Btn variant="primary" onClick={primary.onClick}>
             + {primary.label}
           </Btn>
         ) : null}

@@ -39,7 +39,6 @@ export function JobList() {
         </div>
         <div className="blueprint" style={{ width: 38, height: 38, flex: "none", display: "grid", placeItems: "center", fontFamily: "var(--font-heading)", fontSize: 14 }}>
           SV
-          <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
         </div>
       </header>
 
@@ -74,9 +73,8 @@ export function JobList() {
               key={r.id}
               className="blueprint"
               onClick={() => nav(`/verk/${r.id}`)}
-              style={{ padding: "14px 15px", background: "none", border: "1px solid var(--color-divider)", cursor: "pointer", textAlign: "left", font: "inherit", display: "flex", flexDirection: "column", gap: 9 }}
+              style={{ padding: "14px 15px", background: "none", border: 0, cursor: "pointer", textAlign: "left", font: "inherit", display: "flex", flexDirection: "column", gap: 9 }}
             >
-              <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
               <span style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
                 <span style={{ fontFamily: "var(--font-heading)", fontSize: 24, letterSpacing: ".03em", lineHeight: 1 }}>{r.unit?.code ?? "—"}</span>
                 <span className="tag" style={{ background: TONES[tone].bg, color: TONES[tone].fg }}>{statusLabel}</span>

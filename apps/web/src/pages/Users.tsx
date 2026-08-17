@@ -30,9 +30,9 @@ export function Users() {
           <table className="table">
             <thead>
               <tr>
-                <th style={{ fontFamily: "var(--font-heading)", fontSize: 12, letterSpacing: ".1em", textTransform: "uppercase" }}>Hlutverk</th>
+                <th>Hlutverk</th>
                 {PERMS.map((p) => (
-                  <th key={p} style={{ textAlign: "center", fontFamily: "var(--font-heading)", fontSize: 12, letterSpacing: ".1em", textTransform: "uppercase" }}>{p}</th>
+                  <th key={p} style={{ textAlign: "center" }}>{p}</th>
                 ))}
               </tr>
             </thead>

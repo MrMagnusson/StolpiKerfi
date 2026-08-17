@@ -27,10 +27,10 @@ export function Pricing() {
           <table className="table">
             <thead>
               <tr>
-                <th style={{ fontFamily: "var(--font-heading)", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase" }}>Flokkur</th>
-                <th style={{ textAlign: "right", fontFamily: "var(--font-heading)", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase" }}>Mánaðarleiga</th>
-                <th style={{ textAlign: "right", fontFamily: "var(--font-heading)", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase" }}>Afhending</th>
-                <th style={{ textAlign: "right", fontFamily: "var(--font-heading)", fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase" }}>Lágm. tími</th>
+                <th>Flokkur</th>
+                <th style={{ textAlign: "right" }}>Mánaðarleiga</th>
+                <th style={{ textAlign: "right" }}>Afhending</th>
+                <th style={{ textAlign: "right" }}>Lágm. tími</th>
               </tr>
             </thead>
             <tbody>

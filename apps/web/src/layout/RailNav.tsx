@@ -58,7 +58,6 @@ export function RailNav({ open = false, onNavigate }: { open?: boolean; onNaviga
       <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid var(--color-divider)", display: "flex", gap: 11, alignItems: "center" }}>
         <div className="blueprint" style={{ width: 30, height: 30, flex: "none", display: "grid", placeItems: "center", background: "var(--color-accent)", color: "var(--color-bg)", fontFamily: "var(--font-heading)", fontSize: 17, lineHeight: 1 }}>
           S
-          <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
         </div>
         <div>
           <div style={{ fontFamily: "var(--font-heading)", fontSize: 18, lineHeight: 1, letterSpacing: ".02em" }}>STÓLPI</div>

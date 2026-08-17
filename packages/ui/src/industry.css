@@ -67,25 +67,15 @@ body {
 }
 h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: var(--font-heading-weight); }
 
+/* Soft elevated surface — design revision 2 (handoff_stolpi_v2/README.md "Change log"):
+   blueprint wireframe frames and corner registration marks were dropped in favour of this. */
 .blueprint {
   position: relative;
-  border: 1px solid var(--color-divider);
-  border-radius: 0;
+  border: 0;
+  border-radius: 10px;
+  background: #fbfbfc;
+  box-shadow: 0 1px 2px rgba(43, 43, 45, .06), 0 6px 18px rgba(43, 43, 45, .07);
 }
-.blueprint.halftone, .blueprint.plate, .blueprint.duotone { overflow: visible; }
-.blueprint > .corner {
-  position: absolute; width: 11px; height: 11px;
-  color: color-mix(in srgb, var(--color-text) 55%, transparent);
-}
-.blueprint > .corner::before, .blueprint > .corner::after {
-  content: ""; position: absolute; background: currentColor;
-}
-.blueprint > .corner::before { left: 5px; top: 0; width: 1px; height: 100%; }
-.blueprint > .corner::after  { top: 5px; left: 0; width: 100%; height: 1px; }
-.blueprint > .corner.tl { top: -6px; left: -6px; }
-.blueprint > .corner.tr { top: -6px; right: -6px; }
-.blueprint > .corner.bl { bottom: -6px; left: -6px; }
-.blueprint > .corner.br { bottom: -6px; right: -6px; }
 
 .duotone{position:relative;overflow:hidden}
 .duotone::after{content:"";position:absolute;inset:0;pointer-events:none;
@@ -227,8 +217,8 @@ textarea.input { min-height: 90px; resize: vertical; }
 
 .table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .table th {
-  text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  text-align: left; font-family: var(--font-body); font-weight: 600; font-size: 12.5px; letter-spacing: 0.01em;
+  color: var(--color-neutral-600);
   padding: var(--space-2); border-bottom: 1px solid var(--color-divider);
 }
 .table td {
@@ -254,8 +244,8 @@ textarea.input { min-height: 90px; resize: vertical; }
 .dialog-body { font-size: 14px; opacity: 0.85; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
 
-.card, .btn, .input, .tag, .seg, .dialog { border-radius: 0; }
-.card, .dialog { background: transparent; border: 1px solid var(--color-divider); }
-.btn { border: 1px solid var(--color-divider); }
-.btn-primary { border-color: var(--color-accent); }
-.btn-ghost { border-color: transparent; }
+/* Card surfaces read as lifted, not framed — same soft-surface values as .blueprint above. */
+.card, .dialog {
+  border-radius: 10px; background: #fbfbfc;
+  box-shadow: 0 1px 2px rgba(43, 43, 45, .06), 0 6px 18px rgba(43, 43, 45, .07);
+}
