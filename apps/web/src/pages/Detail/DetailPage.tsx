@@ -45,7 +45,7 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
   if (!draft) return <div style={{ padding: 28, opacity: 0.6 }}>Hleð…</div>;
 
   const setField = (key: string, value: unknown) => setDraft((d) => ({ ...(d as object), [key]: value }));
-  const fields = fieldConfig(kind, { customers, projects, units, contacts });
+  const fields = fieldConfig(kind, { customers, projects, units, contacts, contracts });
 
   const save = async () => {
     try {

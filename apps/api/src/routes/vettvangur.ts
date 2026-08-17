@@ -59,6 +59,7 @@ vettvangurRouter.post(
             cause: damage.cause,
             responsible: damage.responsible ?? null,
             projectId: request.projectId,
+            contractId: request.contractId,
             costIsk: damage.costIsk,
             rebilled: damage.cause === "vidskiptavinur",
             status: "skrad",

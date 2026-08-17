@@ -142,15 +142,19 @@ model SalesTarget {
 }
 
 model ServiceRequest {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
-  type        String   @default("standsetning")
+  type        String    @default("standsetning")
   unitId      String?
-  unit        Unit?    @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  unit        Unit?     @relation(fields: [unitId], references: [id], onDelete: Restrict)
   projectId   String?
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: Restrict)
-  status      String   @default("ny")
-  priority    String   @default("medal")
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  // Leigusamningur einingarinnar á móttökutíma — svo skemmdir/kostnaður sem stofnast við þessa
+  // beiðni (sjá Damage.contractId) rekjist á réttan samning, ekki bara einingu/verkefni.
+  contractId  String?
+  contract    Contract? @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  status      String    @default("ny")
+  priority    String    @default("medal")
   description String?
   assignedTo  String?
   dueDate     String?
@@ -171,6 +175,8 @@ model Contract {
   notes      String?
 
   invoices Invoice[]
+  requests ServiceRequest[]
+  damages  Damage[]
 }
 
 model Quote {
@@ -212,18 +218,22 @@ model Invoice {
 }
 
 model Damage {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   unitId      String
-  unit        Unit     @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  unit        Unit      @relation(fields: [unitId], references: [id], onDelete: Restrict)
   date        String
   description String
   cause       String
   responsible String?
   projectId   String?
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: Restrict)
-  costIsk     Float    @default(0)
-  rebilled    Boolean  @default(false)
-  status      String   @default("skrad")
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  // Leigusamningurinn sem einingin var á þegar skemmdin uppgötvaðist — gerir kleift að rekja
+  // tjónakostnað (og endurkröfu) á réttan samning/viðskiptavin.
+  contractId  String?
+  contract    Contract? @relation(fields: [contractId], references: [id], onDelete: Restrict)
+  costIsk     Float     @default(0)
+  rebilled    Boolean   @default(false)
+  status      String    @default("skrad")
 }
 
 model MaintenanceEntry {

@@ -43,11 +43,14 @@ export function buildPanels(kind: string, draft: any, d: PanelData): Panel[] {
     panels.push({
       title: "Ástandsskrá — skemmdir",
       hint: dmg.length ? `Tjónakostnaður ${short(dmg.reduce((s, x) => s + (x.costIsk || 0), 0))}` : "",
-      rows: dmg.map((x) => ({
-        label: x.description,
-        note: `${x.date} · ${DAMAGE_CAUSE[x.cause]}: ${x.responsible || "—"} · ${DAMAGE_STATUS[x.status].label}${x.rebilled ? " · endurkrafið" : " · á Stólpa"}`,
-        value: short(x.costIsk),
-      })),
+      rows: dmg.map((x) => {
+        const contractNo = d.contracts.find((c) => c.id === x.contractId)?.number;
+        return {
+          label: x.description,
+          note: `${x.date} · ${DAMAGE_CAUSE[x.cause]}: ${x.responsible || "—"} · ${DAMAGE_STATUS[x.status].label}${x.rebilled ? " · endurkrafið" : " · á Stólpa"}${contractNo ? ` · ${contractNo}` : ""}`,
+          value: short(x.costIsk),
+        };
+      }),
       isEmpty: !dmg.length,
       emptyText: "Engin skemmd skráð á þessa einingu.",
     });
@@ -157,10 +160,11 @@ export function buildPanels(kind: string, draft: any, d: PanelData): Panel[] {
 
   if (kind === "requests") {
     const u = d.units.find((x) => x.id === draft.unitId);
+    const contractNo = d.contracts.find((c) => c.id === draft.contractId)?.number;
     panels.push({
       title: "Tengd eining",
       hint: "",
-      rows: u ? [{ label: u.code, note: `${u.sizeM2} m² · ${u.location}`, value: UNIT_STATUS[u.status].label }] : [],
+      rows: u ? [{ label: u.code, note: `${u.sizeM2} m² · ${u.location}${contractNo ? ` · ${contractNo}` : ""}`, value: UNIT_STATUS[u.status].label }] : [],
       isEmpty: !u,
       emptyText: "Engin eining valin.",
     });

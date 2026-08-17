@@ -28,6 +28,7 @@ export interface RefLists {
   projects: { id: string; name: string }[];
   units: { id: string; code: string }[];
   contacts: { id: string; name: string }[];
+  contracts: { id: string; number: string }[];
 }
 
 export function fieldConfig(kind: string, refs: RefLists): FieldDef[] {
@@ -35,6 +36,7 @@ export function fieldConfig(kind: string, refs: RefLists): FieldDef[] {
   const proj: SelectOpt[] = refs.projects.map((p) => ({ value: p.id, label: p.name }));
   const unit: SelectOpt[] = refs.units.map((u) => ({ value: u.id, label: u.code }));
   const cont: SelectOpt[] = refs.contacts.map((c) => ({ value: c.id, label: c.name }));
+  const contract: SelectOpt[] = refs.contracts.map((c) => ({ value: c.id, label: c.number }));
 
   const table: Record<string, FieldDef[]> = {
     units: [
@@ -101,6 +103,7 @@ export function fieldConfig(kind: string, refs: RefLists): FieldDef[] {
       { key: "type", label: "Tegund", type: "select", options: entOpts(REQ_TYPE) },
       { key: "unitId", label: "Eining", type: "select", options: unit },
       { key: "projectId", label: "Verkefni", type: "select", options: proj },
+      { key: "contractId", label: "Leigusamningur", type: "select", options: contract },
       { key: "priority", label: "Forgangur", type: "select", options: entOpts(PRIORITY) },
       { key: "status", label: "Staða", type: "select", options: toneEntOpts(REQ_STATUS) },
       { key: "assignedTo", label: "Ábyrgð", type: "text" },
@@ -140,6 +143,7 @@ export function fieldConfig(kind: string, refs: RefLists): FieldDef[] {
       { key: "cause", label: "Hver olli", type: "select", options: entOpts(DAMAGE_CAUSE) },
       { key: "responsible", label: "Ábyrgðaraðili (nafn)", type: "text" },
       { key: "projectId", label: "Verkefni", type: "select", options: proj },
+      { key: "contractId", label: "Leigusamningur", type: "select", options: contract },
       { key: "costIsk", label: "Kostnaður (ISK)", type: "number" },
       { key: "rebilled", label: "Endurkrafið á viðskiptavin", type: "toggle" },
       { key: "status", label: "Staða", type: "select", options: toneEntOpts(DAMAGE_STATUS) },

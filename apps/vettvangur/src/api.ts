@@ -43,6 +43,7 @@ export interface VettvangurRequest {
   dueDate: string | null;
   unitId: string | null;
   unit: VettvangurUnit | null;
+  contractId: string | null;
 }
 
 export function useRequests() {
@@ -58,10 +59,23 @@ export function useUnits() {
   return useQuery({ queryKey: ["vettvangur-units"], queryFn: () => request<VettvangurUnit[]>("/units") });
 }
 
+export interface VettvangurContract {
+  id: string;
+  number: string;
+  customerId: string | null;
+  unitIds: string[];
+  status: string;
+}
+
+export function useContracts() {
+  return useQuery({ queryKey: ["vettvangur-contracts"], queryFn: () => request<VettvangurContract[]>("/contracts") });
+}
+
 export interface NewRequestPayload {
   title: string;
   type: string;
   unitId: string | null;
+  contractId: string | null;
   priority: string;
   description: string | null;
   assignedTo: string | null;

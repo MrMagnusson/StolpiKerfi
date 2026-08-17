@@ -95,6 +95,7 @@ export interface ServiceRequest {
   type: ReqType;
   unitId: string | null;
   projectId: string | null;
+  contractId: string | null;
   status: ReqStatus;
   priority: Priority;
   description: string | null;
@@ -155,6 +156,7 @@ export interface Damage {
   cause: DamageCause;
   responsible: string | null;
   projectId: string | null;
+  contractId: string | null;
   costIsk: number;
   rebilled: boolean;
   status: DamageStatus;
