@@ -120,13 +120,15 @@ vettvangurRouter.post(
   }),
 );
 
-// Simple (non-intake) job completion — samsetning/uppsetning/viðgerð/flutningur/annað. Unlike
-// /complete above, this does NOT touch the unit's rental status (the job isn't about a unit
-// returning to the available pool); it just closes the request and, for every unit on it, logs
-// a Viðhaldssaga entry with whatever notes/photos were taken, and optionally moves each unit's
-// location (relevant for on-site setup/assembly work). For "viðgerð" (repair) jobs a `damage`
-// block is also accepted — one Damage record per unit, same shape as the móttöku flow's per-issue
-// capture above, so on-site repairs show up in the same Ástandsskrá as intake-discovered damage.
+// Simple (non-intake) job completion — samsetning/uppsetning/viðgerð/flutningur/afhending/annað.
+// Unlike /complete above, this does NOT touch the unit's rental status by default (most of these
+// jobs aren't about a unit changing hands); it just closes the request and, for every unit on it,
+// logs a Viðhaldssaga entry with whatever notes/photos were taken, and optionally moves each unit's
+// location (relevant for on-site setup/assembly work). For "viðgerð" (repair) jobs a `damage` block
+// is also accepted — one Damage record per unit, same shape as the móttöku flow's per-issue capture
+// above. For "afhending" (delivery to the customer) a `delivery` block confirms keys were handed
+// over and who received the unit — that's the one case here that DOES flip unit status, from
+// "reserved" (set when the contract was signed, see routes/contracts.ts) to "in_use".
 const completeSimpleSchema = z.object({
   note: z.string().nullable().optional(),
   photos: z.array(z.string()).optional(),
@@ -136,6 +138,13 @@ const completeSimpleSchema = z.object({
       cause: z.string().min(1),
       responsible: z.string().nullable().optional(),
       costIsk: z.number().nonnegative().default(0),
+    })
+    .nullable()
+    .optional(),
+  delivery: z
+    .object({
+      keysHandedOver: z.boolean(),
+      receivedBy: z.string().min(1),
     })
     .nullable()
     .optional(),
@@ -151,7 +160,9 @@ vettvangurRouter.post(
     if (!request) return res.status(404).json({ error: "Beiðni fannst ekki" });
     if (request.status === "lokid") return res.status(409).json({ error: "Beiðni er þegar lokið." });
 
-    const { note, photos, location, damage } = parsed.data;
+    const { note, photos, location, damage, delivery } = parsed.data;
+    const composedNote =
+      note || (delivery ? `Eining afhent á staðnum. Lyklar afhentar. Móttekið af: ${delivery.receivedBy}.` : null);
 
     const updatedRequest = await prisma.serviceRequest.update({ where: { id: request.id }, data: { status: "lokid" } });
 
@@ -164,7 +175,7 @@ vettvangurRouter.post(
             unitId,
             date: iso(0),
             type: request.type,
-            note: note || null,
+            note: composedNote,
             photos: photos ?? [],
             by: request.assignedTo ?? null,
           },
@@ -191,6 +202,12 @@ vettvangurRouter.post(
       }
       if (location) {
         await prisma.unit.update({ where: { id: unitId }, data: { location } });
+      }
+      if (delivery) {
+        const unit = await prisma.unit.findUnique({ where: { id: unitId } });
+        if (unit?.status === "reserved") {
+          await prisma.unit.update({ where: { id: unitId }, data: { status: "in_use" } });
+        }
       }
     }
 

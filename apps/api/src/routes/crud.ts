@@ -13,7 +13,9 @@ const DELEGATES: Record<string, any> = {
   activities: prisma.activity,
   targets: prisma.salesTarget,
   requests: prisma.serviceRequest,
-  contracts: prisma.contract,
+  // "contracts" is handled by its own route (see routes/contracts.ts) — samningar erfa
+  // viðskiptavin/tímabil/einingar frá tengdu verkefni og hafa hliðaráhrif á einingastöðu, sem er
+  // meira en generic CRUD styður.
   quotes: prisma.quote,
   pricing: prisma.priceItem,
   invoices: prisma.invoice,

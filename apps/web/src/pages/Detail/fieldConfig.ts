@@ -41,7 +41,7 @@ export function fieldConfig(kind: string, refs: RefLists): FieldDef[] {
   const table: Record<string, FieldDef[]> = {
     units: [
       { key: "code", label: "Kóði", type: "text" },
-      { key: "sizeM2", label: "Stærð (m²)", type: "number" },
+      { key: "sizeM2", label: "Stærð (m²) — valfrjálst ef fet er notað", type: "number" },
       { key: "sizeFt", label: "Fet (ft)", type: "number" },
       { key: "lengthM", label: "Lengd (m) — ef fet á ekki við", type: "number" },
       { key: "widthM", label: "Breidd (m) — ef fet á ekki við", type: "number" },
@@ -61,6 +61,7 @@ export function fieldConfig(kind: string, refs: RefLists): FieldDef[] {
       { key: "startDate", label: "Frá", type: "date" },
       { key: "endDate", label: "Til", type: "date" },
       { key: "status", label: "Staða", type: "select", options: entOpts(PROJ_STATUS) },
+      { key: "unitIds", label: "Einingar valdar fyrir verkefnið", type: "chips", options: unit },
     ],
     customers: [
       { key: "name", label: "Nafn fyrirtækis", type: "text" },
@@ -177,7 +178,7 @@ export const KIND_KICKER: Record<string, string> = {
 
 export const KIND_DEFAULTS: Record<string, Record<string, unknown>> = {
   units: { status: "available", hasToilet: false, equipment: [], location: "Lager RVK" },
-  projects: { status: "planning", needsToilet: false, unitsNeeded: 1, requiredEquipment: [] },
+  projects: { status: "planning", needsToilet: false, unitsNeeded: 1, requiredEquipment: [], unitIds: [] },
   customers: {},
   contacts: {},
   deals: { stage: "nytt", owner: "Kalli", source: "Tilvísun" },

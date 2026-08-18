@@ -5,7 +5,8 @@ import type { Unit } from "./types.js";
 export function formatUnitSize(u: Pick<Unit, "sizeFt" | "lengthM" | "widthM" | "sizeM2">): string {
   if (u.sizeFt != null) return `${short1(u.sizeFt)} ft`;
   if (u.lengthM != null && u.widthM != null) return `${short1(u.lengthM)} × ${short1(u.widthM)} m`;
-  return `${u.sizeM2} m²`;
+  if (u.sizeM2 != null) return `${u.sizeM2} m²`;
+  return "—";
 }
 
 function short1(n: number): string {

@@ -32,6 +32,59 @@ function ChipsField({ label, options, value, onChange }: { label: string; option
   );
 }
 
+/** Viðskiptavinar-val með innfelldu "+ Nýtt fyrirtæki" — svo það þurfi ekki að fara af
+ * verkefnaeyðublaðinu til að stofna nýjan viðskiptavin sem er ekki til enn. */
+function CustomerPickerField({ value, options, onChange }: { value: string; options: SelectOpt[]; onChange: (id: string) => void }) {
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState("");
+  const [kennitala, setKennitala] = useState("");
+  const [phone, setPhone] = useState("");
+  const create = useCreate<any>("customers");
+
+  const submit = async () => {
+    if (!name.trim()) return;
+    try {
+      const created = await create.mutateAsync({ name: name.trim(), kennitala: kennitala.trim() || null, phone: phone.trim() || null });
+      onChange((created as any).id);
+      setAdding(false);
+      setName("");
+      setKennitala("");
+      setPhone("");
+    } catch {
+      // the QueryClient's default mutation onError already alerted the user
+    }
+  };
+
+  return (
+    <Field label="Viðskiptavinur">
+      <Select value={value ?? ""} options={options} onChange={(e) => onChange(e.target.value)} />
+      {adding ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8, padding: 10, border: "1px dashed var(--color-divider)" }}>
+          <Input placeholder="Nafn fyrirtækis" value={name} onChange={(e) => setName(e.target.value)} />
+          <Input placeholder="Kennitala (valfrjálst)" value={kennitala} onChange={(e) => setKennitala(e.target.value)} />
+          <Input placeholder="Sími (valfrjálst)" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <div style={{ display: "flex", gap: 8 }}>
+            <Btn variant="primary" onClick={submit} disabled={!name.trim() || create.isPending} style={{ alignSelf: "flex-start" }}>
+              {create.isPending ? "Stofna…" : "Stofna fyrirtæki"}
+            </Btn>
+            <Btn variant="secondary" onClick={() => setAdding(false)} style={{ alignSelf: "flex-start" }}>
+              Hætta við
+            </Btn>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          style={{ marginTop: 6, background: "none", border: "none", padding: 0, font: "inherit", fontSize: 12.5, color: "var(--color-accent-800)", cursor: "pointer", textAlign: "left" }}
+        >
+          + Nýtt fyrirtæki
+        </button>
+      )}
+    </Field>
+  );
+}
+
 export function DetailPage({ isNew }: { isNew: boolean }) {
   const { kind = "", id } = useParams();
   const [params] = useSearchParams();
@@ -77,7 +130,25 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
 
   if (!draft) return <div style={{ padding: 28, opacity: 0.6 }}>Hleð…</div>;
 
-  const setField = (key: string, value: unknown) => setDraft((d) => ({ ...(d as object), [key]: value }));
+  // Contracts and requests don't pick units themselves — units are chosen on the project (see
+  // Project.unitIds) and flow over automatically once a project is selected here. The API
+  // re-derives this authoritatively for contracts on save; this just previews it live in the form.
+  const setField = (key: string, value: unknown) =>
+    setDraft((d) => {
+      const next = { ...(d as object), [key]: value } as Record<string, unknown>;
+      if (key === "projectId" && value && (kind === "contracts" || kind === "requests")) {
+        const project = projects.find((p: any) => p.id === value);
+        if (project) {
+          next.unitIds = project.unitIds ?? [];
+          if (kind === "contracts") {
+            next.customerId = project.customerId ?? null;
+            next.startDate = project.startDate ?? null;
+            next.endDate = project.endDate ?? null;
+          }
+        }
+      }
+      return next;
+    });
   const fields = fieldConfig(kind, { customers, projects, units, contacts, contracts });
   const viewMode = isReadOnlyKind && !isNew && !editing;
 
@@ -165,6 +236,9 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
             : fields.map((f) => {
             const v = (draft as any)[f.key];
             if (f.type === "select") {
+              if (kind === "projects" && f.key === "customerId") {
+                return <CustomerPickerField key={f.key} value={(v ?? "") as string} options={f.options || []} onChange={(id) => setField(f.key, id)} />;
+              }
               return (
                 <Field key={f.key} label={f.label}>
                   <Select value={(v ?? "") as string} options={f.options || []} onChange={(e) => setField(f.key, e.target.value)} />
@@ -203,6 +277,14 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
               </Field>
             );
           })}
+          {kind === "contracts" ? (
+            <div style={{ fontSize: 12.5, opacity: 0.7, padding: "9px 0", borderTop: "1px solid var(--color-divider)" }}>
+              Einingar úr verkefni:{" "}
+              {((draft as any).unitIds as string[] | undefined)?.length
+                ? ((draft as any).unitIds as string[]).map((id) => units.find((u: any) => u.id === id)?.code ?? id).join(", ")
+                : "— veldu verkefni með einingum —"}
+            </div>
+          ) : null}
           {!isNew && (!isReadOnlyKind || editing) ? (
             <Btn variant="secondary" onClick={del} style={{ alignSelf: "flex-start", color: "#8f4038" }}>
               Eyða

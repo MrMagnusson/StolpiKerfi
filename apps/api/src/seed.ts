@@ -54,11 +54,14 @@ export async function seedDatabase(prisma: PrismaClient) {
   ]);
 
   console.log("Sái verkefnum…");
-  const p1 = await prisma.project.create({ data: { name: "Vinnubúðir – Kárahnjúkar", customerId: verkis.id, unitsNeeded: 3, needsToilet: true, minSizeM2: 20, location: "Austurland", startDate: `${y}-09-01`, endDate: `${y}-12-15`, status: "active", requiredEquipment: ["Sturta", "Hitablásari"] } });
-  const p2 = await prisma.project.create({ data: { name: "Kaffistofa – Hvammsvirkjun", customerId: landsvirkjun.id, unitsNeeded: 1, needsToilet: true, minSizeM2: 28, location: "Suðurland", startDate: `${y}-10-01`, endDate: `${y + 1}-06-30`, status: "planning", requiredEquipment: ["Eldhúskrókur", "Loftkæling", "Innréttingar"] } });
-  const p3 = await prisma.project.create({ data: { name: "Skrifstofa á verkstað – Sundabraut", customerId: iav.id, unitsNeeded: 2, needsToilet: false, minSizeM2: 15, location: "Reykjavík", startDate: `${y}-08-15`, endDate: `${y}-11-30`, status: "active", requiredEquipment: ["Skrifborð", "Nettenging"] } });
-  const p4 = await prisma.project.create({ data: { name: "Brúarvinna – Skeiðarársandur", customerId: vegagerdin.id, unitsNeeded: 2, needsToilet: true, minSizeM2: 18, location: "Suðausturland", startDate: `${y}-09-20`, endDate: `${y}-12-01`, status: "planning", requiredEquipment: ["Hitablásari", "Öryggisdyr"] } });
-  const p5 = await prisma.project.create({ data: { name: "Gangnagerð – Fjarðarheiði", customerId: istak.id, unitsNeeded: 4, needsToilet: true, minSizeM2: 24, location: "Austurland", startDate: `${y + 1}-01-10`, endDate: `${y + 1}-09-30`, status: "planning", requiredEquipment: ["Sturta", "Eldhúskrókur", "Nettenging"] } });
+  // unitIds hér eru einingarnar sem skrifstofan hefur ÞEGAR VALIÐ fyrir verkefnið — samningar sem
+  // vísa á verkefnið erfa þennan lista sjálfkrafa (sjá routes/contracts.ts), svo þetta þarf að
+  // samsvara unitIds-listunum á samningunum hér fyrir neðan.
+  const p1 = await prisma.project.create({ data: { name: "Vinnubúðir – Kárahnjúkar", customerId: verkis.id, unitsNeeded: 3, needsToilet: true, minSizeM2: 20, location: "Austurland", startDate: `${y}-09-01`, endDate: `${y}-12-15`, status: "active", requiredEquipment: ["Sturta", "Hitablásari"], unitIds: [] } });
+  const p2 = await prisma.project.create({ data: { name: "Kaffistofa – Hvammsvirkjun", customerId: landsvirkjun.id, unitsNeeded: 1, needsToilet: true, minSizeM2: 28, location: "Suðurland", startDate: `${y}-10-01`, endDate: `${y + 1}-06-30`, status: "planning", requiredEquipment: ["Eldhúskrókur", "Loftkæling", "Innréttingar"], unitIds: [] } });
+  const p3 = await prisma.project.create({ data: { name: "Skrifstofa á verkstað – Sundabraut", customerId: iav.id, unitsNeeded: 2, needsToilet: false, minSizeM2: 15, location: "Reykjavík", startDate: `${y}-08-15`, endDate: `${y}-11-30`, status: "active", requiredEquipment: ["Skrifborð", "Nettenging"], unitIds: [] } });
+  const p4 = await prisma.project.create({ data: { name: "Brúarvinna – Skeiðarársandur", customerId: vegagerdin.id, unitsNeeded: 2, needsToilet: true, minSizeM2: 18, location: "Suðausturland", startDate: `${y}-09-20`, endDate: `${y}-12-01`, status: "planning", requiredEquipment: ["Hitablásari", "Öryggisdyr"], unitIds: [] } });
+  const p5 = await prisma.project.create({ data: { name: "Gangnagerð – Fjarðarheiði", customerId: istak.id, unitsNeeded: 4, needsToilet: true, minSizeM2: 24, location: "Austurland", startDate: `${y + 1}-01-10`, endDate: `${y + 1}-09-30`, status: "planning", requiredEquipment: ["Sturta", "Eldhúskrókur", "Nettenging"], unitIds: [] } });
 
   console.log("Sái einingum…");
   const mkUnit = (
@@ -78,12 +81,18 @@ export async function seedDatabase(prisma: PrismaClient) {
   const u4 = await mkUnit("ST-104", 15, false, "in_use", "Kárahnjúkar", ["Rafmagnstafla", "Gluggar", "Skrifborð"], verkis.id, { sizeFt: 10 });
   const u5 = await mkUnit("ST-105", 20, true, "returned", "Lager RVK", ["Sturta", "Hitablásari", "Öryggisdyr"], undefined, { lengthM: 6.1, widthM: 3.3 });
   const u6 = await mkUnit("ST-106", 36, true, "available", "Lager RVK", ["Sturta", "Eldhúskrókur", "Loftkæling", "Innréttingar", "Nettenging", "Öryggisdyr", "Skrifborð"], undefined, { sizeFt: 30 });
-  const u7 = await mkUnit("ST-107", 18, false, "reserved", "Lager RVK", ["Hitablásari", "Gluggar", "Skrifborð"], undefined, { sizeFt: 12 });
+  // Frátekin fyrir p3/c3 hér fyrir neðan — ekki enn afhent, notuð sem "afhending" sýnidæmið.
+  const u7 = await mkUnit("ST-107", 18, false, "reserved", "Lager RVK", ["Hitablásari", "Gluggar", "Skrifborð"], iav.id, { sizeFt: 12 });
   const u8 = await mkUnit("ST-108", 24, true, "in_use", "Þeistareykir", ["Sturta", "Eldhúskrókur", "Hitablásari"], landsvirkjun.id, { sizeFt: 20 });
   const u9 = await mkUnit("ST-109", 30, true, "available", "Lager Akureyri", ["Sturta", "Eldhúskrókur", "Ísskápur", "Nettenging"], undefined, { sizeFt: 24 });
   const u10 = await mkUnit("ST-110", 12, false, "available", "Lager Akureyri", ["Rafmagnstafla", "Gluggar"], undefined, { lengthM: 4.0, widthM: 3.0 });
   const u11 = await mkUnit("ST-201", 24, true, "damaged", "Verkstæði", ["Sturta", "Eldhúskrókur"], undefined, { sizeFt: 20 });
   const u12 = await mkUnit("ST-202", 40, true, "in_use", "Hvammsvirkjun", ["Sturta", "Eldhúskrókur", "Loftkæling", "Innréttingar", "Nettenging", "Skrifborð"], iav.id, { sizeFt: 32 });
+
+  // Einingarnar valdar fyrir hvert verkefni — samningarnir hér fyrir neðan erfa þessa lista.
+  await prisma.project.update({ where: { id: p1.id }, data: { unitIds: [u4.id] } });
+  await prisma.project.update({ where: { id: p2.id }, data: { unitIds: [u8.id] } });
+  await prisma.project.update({ where: { id: p3.id }, data: { unitIds: [u12.id, u7.id] } });
 
   console.log("Sái sölutækifærum og samskiptum…");
   await prisma.deal.createMany({
@@ -127,15 +136,18 @@ export async function seedDatabase(prisma: PrismaClient) {
       { title: "Flutningur ST-109 norður", type: "flutningur", unitIds: [u9.id], projectId: p5.id, status: "ny", priority: "medal", description: "Keyrsla frá Akureyri á verkstað.", assignedTo: "Flutningar", dueDate: iso(8) },
       { title: "Tenging nettengingar – ST-106", type: "annad", unitIds: [u6.id], projectId: p3.id, status: "tilbuin", priority: "lag", description: "Beðið eftir staðfestingu viðskiptavinar.", assignedTo: "Þjónusta", dueDate: iso(1) },
       // Dæmi um margar einingar á einni beiðni — heilar vinnubúðir (2 einingar) skilað í einu.
-      { title: "Skil á vinnubúðum – Kárahnjúkar", type: "mottaka", unitIds: [u5.id, u7.id], projectId: null, status: "i_vinnslu", priority: "medal", description: "Skilamat og myndataka, 2 einingar.", assignedTo: "Lager", dueDate: iso(5) },
+      { title: "Skil á vinnubúðum – Kárahnjúkar", type: "mottaka", unitIds: [u5.id, u3.id], projectId: null, status: "i_vinnslu", priority: "medal", description: "Skilamat og myndataka, 2 einingar.", assignedTo: "Lager", dueDate: iso(5) },
       { title: "Vetrarþjónusta – ST-104", type: "annad", unitIds: [u4.id], projectId: p1.id, status: "lokid", priority: "lag", description: "Hitablásari yfirfarinn.", assignedTo: "Þjónusta", dueDate: iso(-14) },
+      // Sýnidæmi fyrir afhendingar-skrefið — ST-107 er þegar frátekin fyrir p3/c3 (sjá að ofan),
+      // beðið er eftir að Vettvangur staðfesti afhendingu + lyklaskil á staðnum.
+      { title: "Afhending – ST-107 til Ístaks Verkfr.", type: "afhending", unitIds: [u7.id], projectId: p3.id, contractId: null, status: "ny", priority: "medal", description: "Afhenda einingu á verkstað og staðfesta lyklaskil.", assignedTo: "Lager", dueDate: iso(2) },
     ],
   });
 
   console.log("Sái samningum…");
   const c1 = await prisma.contract.create({ data: { number: `LS-${y}-014`, customerId: verkis.id, projectId: p1.id, unitIds: [u4.id], startDate: `${y}-09-01`, endDate: `${y}-12-15`, monthlyIsk: 1_180_000, status: "virkur", notes: "Verðtryggt skv. byggingarvísitölu." } });
   const c2 = await prisma.contract.create({ data: { number: `LS-${y}-021`, customerId: landsvirkjun.id, projectId: p2.id, unitIds: [u8.id], startDate: `${y}-06-01`, endDate: iso(24), monthlyIsk: 640_000, status: "rennur_ut", notes: "Framlenging í skoðun." } });
-  const c3 = await prisma.contract.create({ data: { number: `LS-${y}-023`, customerId: iav.id, projectId: p3.id, unitIds: [u12.id], startDate: `${y}-08-15`, endDate: `${y}-11-30`, monthlyIsk: 890_000, status: "virkur", notes: "" } });
+  const c3 = await prisma.contract.create({ data: { number: `LS-${y}-023`, customerId: iav.id, projectId: p3.id, unitIds: [u12.id, u7.id], startDate: `${y}-08-15`, endDate: `${y}-11-30`, monthlyIsk: 890_000, status: "virkur", notes: "" } });
   await prisma.contract.create({ data: { number: `LS-${y}-027`, customerId: istak.id, projectId: p5.id, unitIds: [], startDate: `${y + 1}-01-10`, endDate: `${y + 1}-09-30`, monthlyIsk: 2_140_000, status: "drog", notes: "Bíður undirritunar." } });
 
   console.log("Sái tilboðum…");

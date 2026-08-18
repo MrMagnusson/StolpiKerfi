@@ -1,7 +1,7 @@
 // Ported from the detailPanels construction in renderVals() (Stólpi Kerfi.dc.html lines 1740-1805) —
 // right-column context panels per entity kind.
 import {
-  buildMatch, short, CONTRACT_STATUS, DAMAGE_CAUSE, DAMAGE_STATUS, MAINT_TYPE, REQ_STATUS, REQ_TYPE, UNIT_STATUS,
+  buildMatch, formatUnitSize, short, CONTRACT_STATUS, DAMAGE_CAUSE, DAMAGE_STATUS, MAINT_TYPE, REQ_STATUS, REQ_TYPE, UNIT_STATUS,
   DEAL_STAGES, STAGE_PROB, ACTIVITY_TYPE, ROLES, ROLE_MATRIX, PERMS, weightedDealValue,
   type Unit, type Project, type Damage, type MaintenanceEntry, type ServiceRequest, type Doc,
   type Contract, type Deal, type Activity, type Role, type DealStage,
@@ -105,7 +105,7 @@ export function buildPanels(kind: string, draft: any, d: PanelData): Panel[] {
     panels.push({
       title: "Pörun",
       hint: `${mm.eligible.length} / ${draft.unitsNeeded || 0}`,
-      rows: mm.eligible.slice(0, 5).map((x) => ({ label: x.unit.code, note: `${x.unit.sizeM2} m² · ${x.unit.location}`, value: `${x.percent}%` })),
+      rows: mm.eligible.slice(0, 5).map((x) => ({ label: x.unit.code, note: `${formatUnitSize(x.unit)} · ${x.unit.location}`, value: `${x.percent}%` })),
       isEmpty: !mm.eligible.length,
       emptyText: "Engin laus eining uppfyllir kröfurnar.",
     });
@@ -135,7 +135,7 @@ export function buildPanels(kind: string, draft: any, d: PanelData): Panel[] {
       hint: "",
       rows: unitIds.map((id) => {
         const u = d.units.find((x) => x.id === id);
-        return { label: u?.code ?? "—", note: `${u?.sizeM2 ?? "?"} m² · ${u?.location ?? ""}`, value: u ? UNIT_STATUS[u.status].label : "—" };
+        return { label: u?.code ?? "—", note: `${u ? formatUnitSize(u) : "?"} · ${u?.location ?? ""}`, value: u ? UNIT_STATUS[u.status].label : "—" };
       }),
       isEmpty: !unitIds.length,
       emptyText: "Engin eining tengd samningnum enn.",
@@ -219,7 +219,7 @@ export function buildPanels(kind: string, draft: any, d: PanelData): Panel[] {
       hint: "",
       rows: units.map((u) => ({
         label: u.code,
-        note: `${u.sizeM2} m² · ${u.location}${contractNo ? ` · ${contractNo}` : ""}`,
+        note: `${formatUnitSize(u)} · ${u.location}${contractNo ? ` · ${contractNo}` : ""}`,
         value: UNIT_STATUS[u.status].label,
         to: `/detail/units/${u.id}`,
       })),

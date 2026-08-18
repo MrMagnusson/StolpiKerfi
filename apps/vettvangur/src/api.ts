@@ -28,7 +28,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export interface VettvangurUnit {
   id: string;
   code: string;
-  sizeM2: number;
+  sizeM2: number | null;
   location: string;
   status: string;
 }
@@ -126,6 +126,12 @@ export interface CompleteSimplePayload {
     cause: string;
     responsible?: string | null;
     costIsk: number;
+  } | null;
+  // Only sent for "afhending" (delivery) jobs — confirms keys were handed over and who received
+  // the unit; flips unit status from "reserved" to "in_use" on the API side.
+  delivery?: {
+    keysHandedOver: boolean;
+    receivedBy: string;
   } | null;
 }
 

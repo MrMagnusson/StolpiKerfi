@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import path from "node:path";
 import { CRUD_KINDS, crudRouter } from "./routes/crud.js";
+import { contractsRouter } from "./routes/contracts.js";
 import { dashboardRouter } from "./routes/dashboard.js";
 import { matchRouter } from "./routes/match.js";
 import { salesRouter } from "./routes/sales.js";
@@ -23,6 +24,7 @@ app.use("/uploads", express.static(uploadDir));
 for (const kind of CRUD_KINDS) {
   app.use(`/api/${kind}`, crudRouter(kind));
 }
+app.use("/api/contracts", contractsRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/match", matchRouter);
 app.use("/api/sales", salesRouter);

@@ -31,7 +31,7 @@ export function scoreUnit(unit: Unit, p: Project): Omit<UnitScore, "unit"> {
   if (p.minSizeM2) {
     max += 25;
     if ((unit.sizeM2 || 0) >= p.minSizeM2) {
-      score += Math.max(8, 25 - (unit.sizeM2 - p.minSizeM2));
+      score += Math.max(8, 25 - ((unit.sizeM2 || 0) - p.minSizeM2));
       reasons.push({ ok: true, text: `Nógu stór: ${unit.sizeM2} m² ≥ ${p.minSizeM2} m²` });
     } else {
       eligible = false;

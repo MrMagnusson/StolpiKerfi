@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Btn, BlueprintBox, Select } from "@stolpi/ui";
-import { TONES, type Project } from "@stolpi/shared";
+import { TONES, formatUnitSize, type Project } from "@stolpi/shared";
 import { PageHeader } from "../layout/PageHeader.js";
 import { useList, useMatch, request } from "../api.js";
 
@@ -88,7 +88,7 @@ export function Match() {
                     <BlueprintBox key={m.unit.id} style={{ padding: "15px 17px", display: "flex", flexDirection: "column", gap: 10 }}>
                       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
                         <span style={{ fontFamily: "var(--font-heading)", fontSize: 21, letterSpacing: ".03em" }}>{m.unit.code}</span>
-                        <span style={{ fontSize: 12, opacity: 0.65 }}>{m.unit.sizeM2} m² · {m.unit.location}</span>
+                        <span style={{ fontSize: 12, opacity: 0.65 }}>{formatUnitSize(m.unit)} · {m.unit.location}</span>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <span style={{ flex: 1, height: 8, background: "var(--color-neutral-200)" }}>
@@ -121,7 +121,7 @@ export function Match() {
                   <div key={m.unit.id} style={{ border: "1px dashed var(--color-divider)", padding: "13px 15px", display: "flex", flexDirection: "column", gap: 8 }}>
                     <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
                       <span style={{ fontFamily: "var(--font-heading)", fontSize: 19, letterSpacing: ".03em" }}>{m.unit.code}</span>
-                      <span style={{ fontSize: 12, opacity: 0.6 }}>{m.unit.sizeM2} m² · {m.unit.location}</span>
+                      <span style={{ fontSize: 12, opacity: 0.6 }}>{formatUnitSize(m.unit)} · {m.unit.location}</span>
                     </div>
                     <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 3 }}>
                       {m.reasons.map((r: any, i: number) => (

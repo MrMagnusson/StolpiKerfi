@@ -15,12 +15,15 @@ export function SimpleJobFlow({ request }: { request: VettvangurRequest }) {
   const nav = useNavigate();
   const invalidate = useRequestsInvalidate();
   const isRepair = request.type === "vidgerd";
+  const isDelivery = request.type === "afhending";
   const [location, setLocation] = useState(request.units[0]?.location ?? "");
   const [note, setNote] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [cause, setCause] = useState("");
   const [responsible, setResponsible] = useState("");
   const [cost, setCost] = useState("");
+  const [keysHandedOver, setKeysHandedOver] = useState(false);
+  const [receivedBy, setReceivedBy] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<DoneInfo | null>(null);
@@ -41,6 +44,10 @@ export function SimpleJobFlow({ request }: { request: VettvangurRequest }) {
       setError("Veldu hver olli skemmdinni sem var gert við.");
       return;
     }
+    if (isDelivery && (!keysHandedOver || !receivedBy.trim())) {
+      setError("Staðfestu að lyklar hafi verið afhentir og skráðu hver tók við einingunni.");
+      return;
+    }
     setError(null);
     setBusy(true);
     try {
@@ -49,6 +56,7 @@ export function SimpleJobFlow({ request }: { request: VettvangurRequest }) {
         photos,
         location: request.unitIds.length && location ? location : null,
         damage: isRepair ? { cause, responsible: responsible || null, costIsk: Number(cost || 0) } : null,
+        delivery: isDelivery ? { keysHandedOver, receivedBy: receivedBy.trim() } : null,
       });
       invalidate();
       setDone({ photos: photos.length });
@@ -65,7 +73,11 @@ export function SimpleJobFlow({ request }: { request: VettvangurRequest }) {
         <div className="blueprint" style={{ padding: "26px 20px", display: "flex", flexDirection: "column", gap: 14, textAlign: "center" }}>
           <div style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--color-accent-700)" }}>Verki lokið</div>
           <h1 style={{ fontSize: 26, margin: 0, lineHeight: 1.1 }}>{request.title}</h1>
-          <div style={{ fontSize: 14, opacity: 0.7, lineHeight: 1.4 }}>Beiðnin er merkt lokið{request.unitIds.length ? ` og færð í viðhaldssögu ${request.unitIds.length === 1 ? "einingarinnar" : "eininganna"}.` : "."}</div>
+          <div style={{ fontSize: 14, opacity: 0.7, lineHeight: 1.4 }}>
+            {isDelivery
+              ? `Beiðnin er merkt lokið og ${request.unitIds.length === 1 ? "einingin er" : "einingarnar eru"} nú í leigu.`
+              : `Beiðnin er merkt lokið${request.unitIds.length ? ` og færð í viðhaldssögu ${request.unitIds.length === 1 ? "einingarinnar" : "eininganna"}.` : "."}`}
+          </div>
           {photos.length ? <div style={{ fontSize: 13.5, opacity: 0.7 }}>{photos.length} mynd{photos.length === 1 ? "" : "ir"} vistaðar</div> : null}
         </div>
         <button className="btn btn-primary" onClick={() => nav("/")} style={{ minHeight: 52, fontSize: 16 }}>
@@ -124,6 +136,26 @@ export function SimpleJobFlow({ request }: { request: VettvangurRequest }) {
           </>
         ) : null}
 
+        {isDelivery ? (
+          <>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Lyklar afhentar</label>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setKeysHandedOver((k) => !k)}
+                style={{ minHeight: 46, alignSelf: "flex-start" }}
+              >
+                {keysHandedOver ? "Já" : "Nei"}
+              </button>
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Móttekið af (nafn)</label>
+              <input className="input" style={{ minHeight: 46 }} placeholder="Nafn viðtakanda" value={receivedBy} onChange={(e) => setReceivedBy(e.target.value)} />
+            </div>
+          </>
+        ) : null}
+
         {error ? <div style={{ fontSize: 13, color: "#8f4038" }}>{error}</div> : null}
 
         <div className="blueprint" style={{ padding: "14px 15px", display: "flex", flexDirection: "column", gap: 11 }}>
@@ -162,7 +194,7 @@ export function SimpleJobFlow({ request }: { request: VettvangurRequest }) {
 
       <div style={{ position: "fixed", bottom: 0, width: 390, background: "var(--color-bg)", borderTop: "1.5px solid var(--color-neutral-400)", padding: "13px 18px 18px" }}>
         <button className="btn btn-primary" onClick={finish} disabled={busy} style={{ minHeight: 52, fontSize: 16, width: "100%" }}>
-          {busy ? "Vinnur…" : "Ljúka verki"}
+          {busy ? "Vinnur…" : isDelivery ? "Staðfesta afhendingu" : "Ljúka verki"}
         </button>
       </div>
     </section>

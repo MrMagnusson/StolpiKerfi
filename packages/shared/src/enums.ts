@@ -56,7 +56,7 @@ export const REQ_STATUS: Record<ReqStatus, { label: string; tone: Tone }> = {
   hafnad: { label: "Hafnað", tone: "bad" },
 };
 
-export type ReqType = "mottaka" | "standsetning" | "vidgerd" | "flutningur" | "samsetning" | "uppsetning" | "annad";
+export type ReqType = "mottaka" | "standsetning" | "vidgerd" | "flutningur" | "samsetning" | "uppsetning" | "afhending" | "annad";
 export const REQ_TYPE: Record<ReqType, string> = {
   mottaka: "Móttaka",
   standsetning: "Standsetning",
@@ -64,6 +64,7 @@ export const REQ_TYPE: Record<ReqType, string> = {
   flutningur: "Flutningur",
   samsetning: "Samsetning nýrrar einingar",
   uppsetning: "Uppsetning á verkstað",
+  afhending: "Afhending til viðskiptavinar",
   annad: "Annað",
 };
 

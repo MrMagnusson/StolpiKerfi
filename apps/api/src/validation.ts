@@ -7,7 +7,7 @@ import { z } from "zod";
 export const SCHEMAS: Record<string, z.AnyZodObject> = {
   units: z.object({
     code: z.string().min(1),
-    sizeM2: z.number().nonnegative(),
+    sizeM2: z.number().nonnegative().nullable().optional(),
     sizeFt: z.number().nonnegative().nullable().optional(),
     lengthM: z.number().nonnegative().nullable().optional(),
     widthM: z.number().nonnegative().nullable().optional(),
@@ -32,6 +32,7 @@ export const SCHEMAS: Record<string, z.AnyZodObject> = {
     endDate: z.string().nullable().optional(),
     status: z.string().optional(),
     requiredEquipment: z.array(z.string()).optional(),
+    unitIds: z.array(z.string()).optional(),
   }).partial({ name: true }),
 
   customers: z.object({

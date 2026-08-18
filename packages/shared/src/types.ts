@@ -7,7 +7,7 @@ import type {
 export interface Unit {
   id: string;
   code: string;
-  sizeM2: number;
+  sizeM2: number | null;
   sizeFt: number | null;
   lengthM: number | null;
   widthM: number | null;
@@ -33,6 +33,7 @@ export interface Project {
   endDate: string | null;
   status: ProjectStatus;
   requiredEquipment: string[];
+  unitIds: string[];
 }
 
 export interface Customer {

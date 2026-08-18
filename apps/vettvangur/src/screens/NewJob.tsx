@@ -30,10 +30,10 @@ export function NewJob() {
   const [error, setError] = useState<string | null>(null);
 
   const isIntake = isIntakeReqType(type);
-  // Repairs can optionally be tied to a contract too (so on-site damage found during a viðgerð
-  // rebills to the right lease), but unlike intake it's not required — a lot of repair work happens
-  // on units sitting on the lager with no active lease.
-  const showContractPicker = isIntake || type === "vidgerd";
+  // Repairs and deliveries can optionally be tied to a contract too (so on-site damage found during
+  // a viðgerð rebills to the right lease, and afhending shows which lease the unit is going out
+  // under), but unlike intake it's not required — a lot of this work happens without one on hand.
+  const showContractPicker = isIntake || type === "vidgerd" || type === "afhending";
   // A contract must cover every selected unit — e.g. a whole vinnubúðir camp (several units) is
   // normally one lease, so "which contract" only makes sense once it matches the full selection.
   const unitContracts = useMemo(
@@ -145,7 +145,7 @@ export function NewJob() {
                   <span style={{ width: 20, height: 20, flex: "none", display: "grid", placeItems: "center", border: `1px solid ${checked ? "var(--color-accent)" : "var(--color-neutral-400)"}`, background: checked ? "var(--color-accent)" : "none", color: "var(--color-bg)", fontSize: 13 }}>
                     {checked ? "✓" : ""}
                   </span>
-                  <span style={{ fontSize: 13.5 }}>{u.code} · {u.sizeM2} m² · {u.location}</span>
+                  <span style={{ fontSize: 13.5 }}>{u.code}{u.sizeM2 ? ` · ${u.sizeM2} m²` : ""} · {u.location}</span>
                 </button>
               );
             })}

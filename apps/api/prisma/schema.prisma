@@ -22,7 +22,7 @@ datasource db {
 model Unit {
   id         String   @id @default(cuid())
   code       String   @unique
-  sizeM2     Float
+  sizeM2     Float?
   // Fetastærð (10/20/24/30/40 ft o.s.frv.) — sú mælieining sem er notuð á einingarnar í reynd.
   // Þegar stærðin passar ekki við staðlaða fetatölu er lengd × breidd í metrum notuð í staðinn.
   sizeFt     Float?
@@ -64,6 +64,9 @@ model Project {
   endDate           String?
   status            String   @default("planning")
   requiredEquipment String[] @default([])
+  // Einingar valdar fyrir verkefnið — samningar fyrir verkefnið erfa þennan lista sjálfkrafa (sjá
+  // routes/contracts.ts) svo skrifstofan velur einingarnar einu sinni, á verkefninu sjálfu.
+  unitIds           String[] @default([])
 
   requests  ServiceRequest[]
   contracts Contract[]
