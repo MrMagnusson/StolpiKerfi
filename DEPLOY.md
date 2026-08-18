@@ -49,6 +49,12 @@ virkja "Auto Deploy" í Settings → Source á hverri þjónustu.
   samsvarar nýjasta `git push`-inu), ekki eldri færslu — annars getur eldri útgáfa óvart orðið "Active"
   aftur ofan á nýrri breytingu. Ef nýjasta commitið vantar alveg í listann, þarf nýtt `git push` til að
   fá ferska færslu efst sem hægt er að deploya.
+- **web er núna PWA (sjá vite-plugin-pwa í `apps/web/vite.config.ts`) — þjónustuverjinn getur sýnt
+  eldri útgáfu rétt eftir redeploy.** `registerType: "autoUpdate"` á að uppfæra sig sjálfkrafa við
+  næstu heimsókn, en það gerist ekki alltaf samstundis. Ef breyting virðist ekki hafa skilað sér á
+  **web** eftir staðfestan redeploy: opna Verktólin (F12) → Application → Service Workers →
+  "Unregister", og/eða Application → Storage → "Clear site data", endurhlaða svo síðuna.
+  **vettvangur** og **api** eru ekki PWA og verða ekki fyrir þessu.
 
 ## Kostnaður
 Railway "Trial" — $5 í inneign, 30 daga. Eftir það þarf greiðsluupplýsingar til að halda þjónustunum

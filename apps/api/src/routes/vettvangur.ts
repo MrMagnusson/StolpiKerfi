@@ -124,11 +124,21 @@ vettvangurRouter.post(
 // /complete above, this does NOT touch the unit's rental status (the job isn't about a unit
 // returning to the available pool); it just closes the request and, for every unit on it, logs
 // a Viðhaldssaga entry with whatever notes/photos were taken, and optionally moves each unit's
-// location (relevant for on-site setup/assembly work).
+// location (relevant for on-site setup/assembly work). For "viðgerð" (repair) jobs a `damage`
+// block is also accepted — one Damage record per unit, same shape as the móttöku flow's per-issue
+// capture above, so on-site repairs show up in the same Ástandsskrá as intake-discovered damage.
 const completeSimpleSchema = z.object({
   note: z.string().nullable().optional(),
   photos: z.array(z.string()).optional(),
   location: z.string().nullable().optional(),
+  damage: z
+    .object({
+      cause: z.string().min(1),
+      responsible: z.string().nullable().optional(),
+      costIsk: z.number().nonnegative().default(0),
+    })
+    .nullable()
+    .optional(),
 });
 
 vettvangurRouter.post(
@@ -141,11 +151,12 @@ vettvangurRouter.post(
     if (!request) return res.status(404).json({ error: "Beiðni fannst ekki" });
     if (request.status === "lokid") return res.status(409).json({ error: "Beiðni er þegar lokið." });
 
-    const { note, photos, location } = parsed.data;
+    const { note, photos, location, damage } = parsed.data;
 
     const updatedRequest = await prisma.serviceRequest.update({ where: { id: request.id }, data: { status: "lokid" } });
 
     const maintenanceRows = [];
+    const damageRows = [];
     for (const unitId of request.unitIds) {
       maintenanceRows.push(
         await prisma.maintenanceEntry.create({
@@ -159,11 +170,30 @@ vettvangurRouter.post(
           },
         }),
       );
+      if (damage) {
+        damageRows.push(
+          await prisma.damage.create({
+            data: {
+              unitId,
+              date: iso(0),
+              description: note || `Viðgerð — ${request.title}`,
+              cause: damage.cause,
+              responsible: damage.responsible ?? null,
+              projectId: request.projectId,
+              contractId: request.contractId,
+              costIsk: damage.costIsk,
+              photos: photos ?? [],
+              rebilled: damage.cause === "vidskiptavinur",
+              status: "lagfaert",
+            },
+          }),
+        );
+      }
       if (location) {
         await prisma.unit.update({ where: { id: unitId }, data: { location } });
       }
     }
 
-    res.json({ request: updatedRequest, maintenance: maintenanceRows });
+    res.json({ request: updatedRequest, maintenance: maintenanceRows, damages: damageRows });
   }),
 );

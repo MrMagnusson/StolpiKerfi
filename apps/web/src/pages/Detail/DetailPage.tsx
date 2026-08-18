@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Btn, Field, Input, Select, Textarea, Chip, BlueprintBox } from "@stolpi/ui";
-import { norm, parseIntakePhotos, type Unit } from "@stolpi/shared";
+import { norm, parseIntakePhotos, short, type Unit } from "@stolpi/shared";
 import { fieldConfig, KIND_KICKER, KIND_DEFAULTS, type SelectOpt } from "./fieldConfig.js";
 import { buildPanels } from "./panels.js";
 import { PhotoSlots } from "./PhotoSlots.js";
@@ -56,6 +56,10 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
 
   const [draft, setDraft] = useState<Record<string, unknown> | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  // Damage records are field-captured reports (Vettvangur móttaka/viðgerð), not free-form data entry —
+  // they open read-only ("skýrsla") and only become editable via the explicit "Breyta" button.
+  const isReadOnlyKind = kind === "damages";
+  const [editing, setEditing] = useState(isNew);
 
   useEffect(() => {
     if (isNew) {
@@ -67,10 +71,15 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
     }
   }, [isNew, existing, kind]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    setEditing(isNew);
+  }, [isNew, id, kind]);
+
   if (!draft) return <div style={{ padding: 28, opacity: 0.6 }}>Hleð…</div>;
 
   const setField = (key: string, value: unknown) => setDraft((d) => ({ ...(d as object), [key]: value }));
   const fields = fieldConfig(kind, { customers, projects, units, contacts, contracts });
+  const viewMode = isReadOnlyKind && !isNew && !editing;
 
   const save = async () => {
     try {
@@ -79,6 +88,7 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
         nav(`/detail/${kind}/${(created as any).id}`);
       } else if (id) {
         await update.mutateAsync({ id, data: draft });
+        if (isReadOnlyKind) setEditing(false);
       }
     } catch {
       // the QueryClient's default mutation onError already alerted the user
@@ -119,16 +129,40 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
   return (
     <>
       <PageHeader
-        kicker={isNew ? `Ný skráning · ${kicker}` : `${kicker} · Smáatriði`}
+        kicker={isNew ? `Ný skráning · ${kicker}` : viewMode ? `${kicker} · Skýrsla` : `${kicker} · Smáatriði`}
         title={title}
-        note={isNew ? "Fylltu út reitina og vistaðu — skráningin birtist strax í yfirlitinu." : "Breytingar vistast þegar þú smellir á Vista."}
+        note={
+          isNew
+            ? "Fylltu út reitina og vistaðu — skráningin birtist strax í yfirlitinu."
+            : viewMode
+              ? "Skýrsla — smelltu á Breyta til að uppfæra skráninguna."
+              : "Breytingar vistast þegar þú smellir á Vista."
+        }
         extra={<Btn variant="secondary" onClick={() => nav(-1 as any)}>← Til baka</Btn>}
-        primary={{ label: "Vista", onClick: save }}
+        primary={viewMode ? { label: "Breyta", onClick: () => setEditing(true) } : { label: "Vista", onClick: save }}
       />
       <div style={{ padding: "26px 28px 64px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(330px, 1fr))", gap: 26, alignItems: "start" }}>
-        <BlueprintBox style={{ padding: "20px 22px", display: "flex", flexDirection: "column", gap: 15, minWidth: 0 }}>
-          <div style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", opacity: 0.5 }}>Skráning</div>
-          {fields.map((f) => {
+        <BlueprintBox style={{ padding: "20px 22px", display: "flex", flexDirection: "column", gap: viewMode ? 0 : 15, minWidth: 0 }}>
+          <div style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", opacity: 0.5, marginBottom: viewMode ? 6 : 0 }}>{viewMode ? "Skýrsla" : "Skráning"}</div>
+          {viewMode
+            ? fields.map((f) => {
+                const v = (draft as any)[f.key];
+                let display: string;
+                if (f.type === "select") display = f.options?.find((o) => o.value === v)?.label ?? "—";
+                else if (f.type === "toggle") display = v ? "Já" : "Nei";
+                else if (f.type === "chips") {
+                  const list: string[] = Array.isArray(v) ? v : [];
+                  display = list.length ? list.map((id) => f.options?.find((o) => o.value === id)?.label ?? id).join(", ") : "—";
+                } else if (f.type === "number") display = v != null && v !== "" ? short(Number(v)) : "—";
+                else display = (v as string) || "—";
+                return (
+                  <div key={f.key} style={{ display: "flex", justifyContent: "space-between", gap: 14, padding: "9px 0", borderTop: "1px solid var(--color-divider)" }}>
+                    <span style={{ fontSize: 12.5, opacity: 0.6 }}>{f.label}</span>
+                    <span style={{ fontSize: 14, textAlign: "right" }}>{display}</span>
+                  </div>
+                );
+              })
+            : fields.map((f) => {
             const v = (draft as any)[f.key];
             if (f.type === "select") {
               return (
@@ -169,7 +203,7 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
               </Field>
             );
           })}
-          {!isNew ? (
+          {!isNew && (!isReadOnlyKind || editing) ? (
             <Btn variant="secondary" onClick={del} style={{ alignSelf: "flex-start", color: "#8f4038" }}>
               Eyða
             </Btn>

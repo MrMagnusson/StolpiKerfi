@@ -176,7 +176,6 @@ export async function seedDatabase(prisma: PrismaClient) {
     data: [
       { ref: u2.id, name: "ST-102 – skilamat.pdf", kind: "PDF", size: "412 kB", date: iso(-30) },
       { ref: u2.id, name: "ST-102 – ljósmyndir að innan.zip", kind: "Myndir", size: "8,4 MB", date: iso(-29) },
-      { ref: u11.id, name: "Tjónaskýrsla ST-201.pdf", kind: "PDF", size: "268 kB", date: iso(-10) },
       { ref: u4.id, name: "Afhendingarblað ST-104.pdf", kind: "PDF", size: "180 kB", date: iso(-95) },
       { ref: u6.id, name: "Teikning – innrétting.dwg", kind: "Teikning", size: "1,2 MB", date: iso(-61) },
     ],

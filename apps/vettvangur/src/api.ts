@@ -120,6 +120,13 @@ export interface CompleteSimplePayload {
   note?: string | null;
   photos?: string[];
   location?: string | null;
+  // Only sent for "vidgerd" (repair) jobs — one Damage record per unit on the request, mirroring
+  // the "ástand" issue capture in the móttöku flow (see CompletePayload above).
+  damage?: {
+    cause: string;
+    responsible?: string | null;
+    costIsk: number;
+  } | null;
 }
 
 export function completeSimpleRequest(id: string, payload: CompleteSimplePayload) {

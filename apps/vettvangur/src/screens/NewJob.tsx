@@ -30,6 +30,10 @@ export function NewJob() {
   const [error, setError] = useState<string | null>(null);
 
   const isIntake = isIntakeReqType(type);
+  // Repairs can optionally be tied to a contract too (so on-site damage found during a viðgerð
+  // rebills to the right lease), but unlike intake it's not required — a lot of repair work happens
+  // on units sitting on the lager with no active lease.
+  const showContractPicker = isIntake || type === "vidgerd";
   // A contract must cover every selected unit — e.g. a whole vinnubúðir camp (several units) is
   // normally one lease, so "which contract" only makes sense once it matches the full selection.
   const unitContracts = useMemo(
@@ -64,7 +68,7 @@ export function NewJob() {
         title: title.trim(),
         type,
         unitIds,
-        contractId: isIntake ? contractId : null,
+        contractId: showContractPicker && contractId ? contractId : null,
         priority,
         description: description.trim() || null,
         assignedTo: null,
@@ -148,16 +152,16 @@ export function NewJob() {
           </div>
         </div>
 
-        {isIntake ? (
+        {showContractPicker ? (
           <div className="field" style={{ margin: 0 }}>
-            <label>Leigusamningur</label>
+            <label>Leigusamningur{isIntake ? "" : " (valfrjálst)"}</label>
             <select className="input" style={{ minHeight: 46 }} value={contractId} onChange={(e) => setContractId(e.target.value)} disabled={!unitIds.length}>
               <option value="">{unitIds.length ? "— Veldu samning —" : "— Veldu einingu fyrst —"}</option>
               {unitContracts.map((c) => (
                 <option key={c.id} value={c.id}>{c.number}</option>
               ))}
             </select>
-            {unitIds.length && !unitContracts.length ? (
+            {isIntake && unitIds.length && !unitContracts.length ? (
               <div style={{ fontSize: 12, color: "#8a6321", marginTop: 5 }}>Enginn samningur nær yfir allar valdar einingar.</div>
             ) : null}
           </div>

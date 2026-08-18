@@ -3,7 +3,7 @@
 // there's no stepper or requirement gate: just a location, a note, optional photos, and one button.
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { REQ_TYPE, type ReqType } from "@stolpi/shared";
+import { DAMAGE_CAUSE, REQ_TYPE, type ReqType } from "@stolpi/shared";
 import { useRequestsInvalidate, completeSimpleRequest, type VettvangurRequest } from "../api.js";
 import { downscaleAndUpload } from "../photo.js";
 
@@ -14,10 +14,15 @@ interface DoneInfo {
 export function SimpleJobFlow({ request }: { request: VettvangurRequest }) {
   const nav = useNavigate();
   const invalidate = useRequestsInvalidate();
+  const isRepair = request.type === "vidgerd";
   const [location, setLocation] = useState(request.units[0]?.location ?? "");
   const [note, setNote] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
+  const [cause, setCause] = useState("");
+  const [responsible, setResponsible] = useState("");
+  const [cost, setCost] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<DoneInfo | null>(null);
 
   const addPhoto = async (file: File) => {
@@ -32,12 +37,18 @@ export function SimpleJobFlow({ request }: { request: VettvangurRequest }) {
 
   const finish = async () => {
     if (busy) return;
+    if (isRepair && !cause) {
+      setError("Veldu hver olli skemmdinni sem var gert við.");
+      return;
+    }
+    setError(null);
     setBusy(true);
     try {
       await completeSimpleRequest(request.id, {
         note: note || null,
         photos,
         location: request.unitIds.length && location ? location : null,
+        damage: isRepair ? { cause, responsible: responsible || null, costIsk: Number(cost || 0) } : null,
       });
       invalidate();
       setDone({ photos: photos.length });
@@ -90,6 +101,30 @@ export function SimpleJobFlow({ request }: { request: VettvangurRequest }) {
           <label>Athugasemd</label>
           <textarea className="input" style={{ minHeight: 90 }} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Lýsing á unnu verki…" />
         </div>
+
+        {isRepair ? (
+          <>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Hver olli skemmdinni</label>
+              <select className="input" style={{ minHeight: 46 }} value={cause} onChange={(e) => setCause(e.target.value)}>
+                <option value="">— veldu —</option>
+                {Object.keys(DAMAGE_CAUSE).map((k) => (
+                  <option key={k} value={k}>{DAMAGE_CAUSE[k as keyof typeof DAMAGE_CAUSE]}</option>
+                ))}
+              </select>
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Ábyrgðaraðili (nafn / fyrirtæki)</label>
+              <input className="input" style={{ minHeight: 46 }} placeholder="t.d. Verkís hf. — Jón Jónsson" value={responsible} onChange={(e) => setResponsible(e.target.value)} />
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Kostnaður við viðgerð (ISK)</label>
+              <input className="input" style={{ minHeight: 46 }} type="number" placeholder="0" value={cost} onChange={(e) => setCost(e.target.value)} />
+            </div>
+          </>
+        ) : null}
+
+        {error ? <div style={{ fontSize: 13, color: "#8f4038" }}>{error}</div> : null}
 
         <div className="blueprint" style={{ padding: "14px 15px", display: "flex", flexDirection: "column", gap: 11 }}>
           <span style={{ fontFamily: "var(--font-heading)", fontSize: 18 }}>Myndir af verki</span>
