@@ -1,9 +1,10 @@
-// Ported from the unit detail page's "Ástandsmyndir" panel, Stólpi Kerfi.dc.html lines 888-927 —
-// 4 photo slots (við móttöku / eftir standsetningu / nærmynd af skemmd / núverandi ástand). The
-// prototype used a bundled <image-slot> custom element; here each slot is a plain upload + preview
-// wired to POST /api/uploads via downscaleAndUpload, with the URL saved onto the Unit record.
-// Extended with: a "forsíðumynd" (cover photo) pick shown on the Einingar list cards, and a
-// click-to-open lightbox that steps through whichever slots are populated.
+// Unit detail page's condition photos — deliberately just 2 slots (að utan / að innan) showing the
+// unit's CURRENT state, not a process history: salespeople looking at a unit need to see what it
+// looks like right now, not what it looked like mid-refurbishment. The full step-by-step record
+// (móttaka/standsetning/skemmd photos) lives on the intake request itself — see its "Myndir úr
+// móttöku" gallery, reachable from this unit's "Beiðnir" panel. These 2 fields are filled
+// automatically when the Vettvangur intake flow reaches "Tilbúin" (astand_uti/astand_inni), or can
+// be set by hand here for a unit that's been received but isn't fully processed yet.
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BlueprintBox, Btn } from "@stolpi/ui";
@@ -11,46 +12,29 @@ import type { Unit } from "@stolpi/shared";
 import { downscaleAndUpload } from "../../photo.js";
 import { PhotoLightbox, type LightboxImage } from "./PhotoLightbox.js";
 
-const SLOTS: { key: keyof Pick<Unit, "photoMottaka" | "photoStandsett" | "photoSkemmd" | "photoAstand">; label: string }[] = [
-  { key: "photoMottaka", label: "Við móttöku" },
-  { key: "photoStandsett", label: "Eftir standsetningu" },
-  { key: "photoSkemmd", label: "Skemmd — nærmynd" },
-  { key: "photoAstand", label: "Núverandi ástand" },
+const SLOTS: { key: keyof Pick<Unit, "photoUti" | "photoInni">; label: string }[] = [
+  { key: "photoUti", label: "Að utan" },
+  { key: "photoInni", label: "Að innan" },
 ];
 
 function Slot({
   label,
   url,
   busy,
-  isCover,
   onFile,
   onRemove,
   onOpen,
-  onSetCover,
 }: {
   label: string;
   url: string | null;
   busy: boolean;
-  isCover: boolean;
   onFile: (f: File) => void;
   onRemove: () => void;
   onOpen: () => void;
-  onSetCover: () => void;
 }) {
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        <div style={{ fontSize: 11, letterSpacing: ".1em", textTransform: "uppercase", opacity: 0.6 }}>{label}</div>
-        {url ? (
-          <button
-            onClick={onSetCover}
-            title={isCover ? "Þetta er forsíðumyndin" : "Nota sem forsíðumynd"}
-            style={{ border: "none", background: "none", cursor: "pointer", padding: 0, fontSize: 14, color: isCover ? "var(--color-accent)" : "var(--color-neutral-500)" }}
-          >
-            {isCover ? "★ Forsíðumynd" : "☆ Velja sem forsíðu"}
-          </button>
-        ) : null}
-      </div>
+      <div style={{ fontSize: 11, letterSpacing: ".1em", textTransform: "uppercase", opacity: 0.6, marginBottom: 6 }}>{label}</div>
       <div style={{ height: 150, position: "relative", overflow: "hidden", background: "var(--color-neutral-200)", border: url ? undefined : "1px dashed var(--color-divider)" }}>
         {url ? (
           <>
@@ -101,8 +85,8 @@ export function PhotoSlots({ unit, onSave }: { unit: Unit; onSave: (field: strin
     try {
       const url = await downscaleAndUpload(file);
       onSave(field, url);
-      // First photo uploaded on a unit with no cover yet becomes the cover automatically.
-      if (!unit.coverPhotoUrl) onSave("coverPhotoUrl", url);
+      // Forsíðumyndin fylgir alltaf mynd að utan.
+      if (field === "photoUti") onSave("coverPhotoUrl", url);
     } catch (e) {
       alert((e as Error).message);
     } finally {
@@ -110,9 +94,9 @@ export function PhotoSlots({ unit, onSave }: { unit: Unit; onSave: (field: strin
     }
   };
 
-  const handleRemove = (field: string, url: string | null) => {
+  const handleRemove = (field: string) => {
     onSave(field, null);
-    if (url && unit.coverPhotoUrl === url) onSave("coverPhotoUrl", null);
+    if (field === "photoUti") onSave("coverPhotoUrl", null);
   };
 
   const populated: LightboxImage[] = SLOTS.filter((s) => unit[s.key]).map((s) => ({ label: s.label, url: unit[s.key] as string }));
@@ -120,8 +104,8 @@ export function PhotoSlots({ unit, onSave }: { unit: Unit; onSave: (field: strin
   return (
     <BlueprintBox style={{ padding: "18px 20px" }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
-        <h2 style={{ fontSize: 19, margin: 0 }}>Ástandsmyndir</h2>
-        <span style={{ fontSize: 11, letterSpacing: ".12em", textTransform: "uppercase", opacity: 0.5 }}>Móttaka og standsetning</span>
+        <h2 style={{ fontSize: 19, margin: 0 }}>Núverandi ástand</h2>
+        <span style={{ fontSize: 11, letterSpacing: ".12em", textTransform: "uppercase", opacity: 0.5 }}>Að utan og innan</span>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
         {SLOTS.map((s) => {
@@ -132,11 +116,9 @@ export function PhotoSlots({ unit, onSave }: { unit: Unit; onSave: (field: strin
               label={s.label}
               url={url}
               busy={busyField === s.key}
-              isCover={!!url && url === unit.coverPhotoUrl}
               onFile={(f) => handleFile(s.key, f)}
-              onRemove={() => handleRemove(s.key, url)}
+              onRemove={() => handleRemove(s.key)}
               onOpen={() => setLightboxIndex(populated.findIndex((p) => p.url === url))}
-              onSetCover={() => onSave("coverPhotoUrl", url)}
             />
           );
         })}

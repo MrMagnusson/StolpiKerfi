@@ -1,7 +1,7 @@
 // Ported from the detailPanels construction in renderVals() (Stólpi Kerfi.dc.html lines 1740-1805) —
 // right-column context panels per entity kind.
 import {
-  buildMatch, short, DAMAGE_CAUSE, DAMAGE_STATUS, MAINT_TYPE, REQ_STATUS, REQ_TYPE, UNIT_STATUS,
+  buildMatch, short, CONTRACT_STATUS, DAMAGE_CAUSE, DAMAGE_STATUS, MAINT_TYPE, REQ_STATUS, REQ_TYPE, UNIT_STATUS,
   DEAL_STAGES, STAGE_PROB, ACTIVITY_TYPE, ROLES, ROLE_MATRIX, PERMS, weightedDealValue,
   type Unit, type Project, type Damage, type MaintenanceEntry, type ServiceRequest, type Doc,
   type Contract, type Deal, type Activity, type Role, type DealStage,
@@ -40,6 +40,19 @@ export function buildPanels(kind: string, draft: any, d: PanelData): Panel[] {
   if (!draft?.id) return panels;
 
   if (kind === "units") {
+    const unitContracts = d.contracts.filter((c) => c.unitIds.includes(draft.id));
+    panels.push({
+      title: "Leigusamningar",
+      hint: "",
+      rows: unitContracts.map((c) => ({
+        label: c.number,
+        note: `${c.startDate ?? "—"} → ${c.endDate ?? "—"}`,
+        value: CONTRACT_STATUS[c.status].label,
+        to: `/detail/contracts/${c.id}`,
+      })),
+      isEmpty: !unitContracts.length,
+      emptyText: "Engin leigusamningur tengdur þessari einingu enn.",
+    });
     const dmg = d.damages.filter((x) => x.unitId === draft.id).sort((a, b) => (a.date < b.date ? 1 : -1));
     const hist = d.maintenance.filter((m) => m.unitId === draft.id).sort((a, b) => (a.date < b.date ? 1 : -1));
     panels.push({
@@ -64,7 +77,7 @@ export function buildPanels(kind: string, draft: any, d: PanelData): Panel[] {
       isEmpty: !hist.length,
       emptyText: "Engin viðhaldsfærsla skráð á þessa einingu.",
     });
-    const reqs = d.requests.filter((r) => r.unitId === draft.id);
+    const reqs = d.requests.filter((r) => r.unitIds?.includes(draft.id));
     panels.push({
       title: "Beiðnir",
       hint: "",
@@ -139,27 +152,35 @@ export function buildPanels(kind: string, draft: any, d: PanelData): Panel[] {
     });
     panels.push({ title: "Skjöl", hint: "", rows: [], isEmpty: true, emptyText: "Dragðu undirritaðan samning hingað (PDF)" });
 
-    const relReqs = d.requests.filter((r) => r.contractId === draft.id);
+    // Ástand við upphaf leigu er ekki skráð sérstaklega ennþá (ekkert Vettvangur-flæði fyrir það) —
+    // þetta spjald sýnir því bara ástandið við LOK leigu: móttöku-beiðnir (type "mottaka") tengdar
+    // þessum samningi, hver með sinni fullu myndaskýrslu (sjá /detail/requests/:id).
+    const contractIntake = d.requests.filter((r) => r.contractId === draft.id && r.type === "mottaka");
+    panels.push({
+      title: "Ástand við lok leigu (móttaka)",
+      hint: "",
+      rows: contractIntake.map((r) => ({
+        label: r.title,
+        note: `${REQ_STATUS[r.status].label}${r.photos?.length ? ` · ${r.photos.length} mynd${r.photos.length === 1 ? "" : "ir"}` : ""}`,
+        value: r.dueDate ?? "—",
+        to: `/detail/requests/${r.id}`,
+      })),
+      isEmpty: !contractIntake.length,
+      emptyText: "Engin móttaka skráð á þennan samning enn.",
+    });
+
     const relDamages = d.damages.filter((x) => x.contractId === draft.id);
     panels.push({
-      title: "Móttökur og skemmdir",
+      title: "Skemmdir á leigutíma",
       hint: relDamages.length ? `Tjónakostnaður ${short(relDamages.reduce((s, x) => s + (x.costIsk || 0), 0))}` : "",
-      rows: [
-        ...relReqs.map((r) => ({
-          label: r.title,
-          note: `${REQ_TYPE[r.type]} · ${REQ_STATUS[r.status].label}${r.photos?.length ? ` · ${r.photos.length} mynd${r.photos.length === 1 ? "" : "ir"}` : ""}`,
-          value: r.dueDate ?? "—",
-          to: `/detail/requests/${r.id}`,
-        })),
-        ...relDamages.map((x) => ({
-          label: x.description,
-          note: `${x.date} · ${DAMAGE_CAUSE[x.cause]}${x.photos?.length ? ` · ${x.photos.length} mynd${x.photos.length === 1 ? "" : "ir"}` : ""}`,
-          value: short(x.costIsk),
-          to: `/detail/damages/${x.id}`,
-        })),
-      ],
-      isEmpty: !relReqs.length && !relDamages.length,
-      emptyText: "Engar móttökur eða skemmdir skráðar á þennan samning.",
+      rows: relDamages.map((x) => ({
+        label: x.description,
+        note: `${x.date} · ${DAMAGE_CAUSE[x.cause]}${x.photos?.length ? ` · ${x.photos.length} mynd${x.photos.length === 1 ? "" : "ir"}` : ""}`,
+        value: short(x.costIsk),
+        to: `/detail/damages/${x.id}`,
+      })),
+      isEmpty: !relDamages.length,
+      emptyText: "Engar skemmdir skráðar á þennan samning.",
     });
   }
 
@@ -190,16 +211,22 @@ export function buildPanels(kind: string, draft: any, d: PanelData): Panel[] {
   }
 
   if (kind === "requests") {
-    const u = d.units.find((x) => x.id === draft.unitId);
+    const reqUnitIds: string[] = draft.unitIds || [];
+    const units = reqUnitIds.map((id) => d.units.find((x) => x.id === id)).filter((u): u is Unit => !!u);
     const contractNo = d.contracts.find((c) => c.id === draft.contractId)?.number;
     panels.push({
-      title: "Tengd eining",
+      title: units.length > 1 ? "Tengdar einingar" : "Tengd eining",
       hint: "",
-      rows: u ? [{ label: u.code, note: `${u.sizeM2} m² · ${u.location}${contractNo ? ` · ${contractNo}` : ""}`, value: UNIT_STATUS[u.status].label }] : [],
-      isEmpty: !u,
+      rows: units.map((u) => ({
+        label: u.code,
+        note: `${u.sizeM2} m² · ${u.location}${contractNo ? ` · ${contractNo}` : ""}`,
+        value: UNIT_STATUS[u.status].label,
+        to: `/detail/units/${u.id}`,
+      })),
+      isEmpty: !units.length,
       emptyText: "Engin eining valin.",
     });
-    const docs = d.docs.filter((x) => x.ref === draft.unitId);
+    const docs = d.docs.filter((x) => reqUnitIds.includes(x.ref));
     panels.push({ title: "Skjöl & myndir", hint: "", rows: docs.map((x) => ({ label: x.name, note: `${x.kind} · ${x.date}`, value: x.size })), isEmpty: true, emptyText: "Dragðu myndir af vinnunni hingað" });
   }
 

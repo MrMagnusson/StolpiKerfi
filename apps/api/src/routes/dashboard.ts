@@ -45,7 +45,7 @@ dashboardRouter.get(
   for (const r of openReq.filter((r) => r.dueDate && r.dueDate <= iso(3))) {
     attention.push({
       title: r.title,
-      meta: `${uCode(r.unitId)} · ${REQ_TYPE[r.type as keyof typeof REQ_TYPE]} · ${r.assignedTo ?? "—"}`,
+      meta: `${r.unitIds.map(uCode).join(", ") || "—"} · ${REQ_TYPE[r.type as keyof typeof REQ_TYPE]} · ${r.assignedTo ?? "—"}`,
       tag: r.dueDate! < today ? "Yfir tíma" : "Á næstunni",
       tone: r.dueDate! < today ? "bad" : "warn",
       sort: r.dueDate!,

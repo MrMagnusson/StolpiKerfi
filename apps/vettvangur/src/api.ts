@@ -41,8 +41,8 @@ export interface VettvangurRequest {
   priority: string;
   assignedTo: string | null;
   dueDate: string | null;
-  unitId: string | null;
-  unit: VettvangurUnit | null;
+  unitIds: string[];
+  units: VettvangurUnit[];
   contractId: string | null;
 }
 
@@ -74,7 +74,7 @@ export function useContracts() {
 export interface NewRequestPayload {
   title: string;
   type: string;
-  unitId: string | null;
+  unitIds: string[];
   contractId: string | null;
   priority: string;
   description: string | null;
@@ -98,14 +98,17 @@ export async function uploadPhoto(blob: Blob): Promise<string> {
 }
 
 export interface CompletePayload {
-  location: string;
   photos?: string[];
-  damages?: {
-    description: string;
-    cause: string;
-    responsible?: string | null;
-    costIsk: number;
-    photos?: string[];
+  units: {
+    unitId: string;
+    location: string;
+    damages?: {
+      description: string;
+      cause: string;
+      responsible?: string | null;
+      costIsk: number;
+      photos?: string[];
+    }[];
   }[];
 }
 

@@ -13,7 +13,7 @@ export function Requests() {
   const [q, setQ] = useState("");
   const nav = useNavigate();
 
-  const uCode = (id: string | null) => units.find((u) => u.id === id)?.code ?? "—";
+  const uCodes = (ids: string[]) => ids.map((id) => units.find((u) => u.id === id)?.code).filter(Boolean).join(", ") || "—";
   const today = new Date().toISOString().slice(0, 10);
 
   return (
@@ -46,7 +46,7 @@ export function Requests() {
                           <span style={{ fontSize: 14, lineHeight: 1.25 }}>{r.title}</span>
                           <Tag tone={r.priority === "ha" ? "bad" : r.priority === "medal" ? "warn" : "neutral"}>{PRIORITY[r.priority]}</Tag>
                         </span>
-                        <span style={{ fontSize: 12, opacity: 0.65 }}>{REQ_TYPE[r.type]} · {uCode(r.unitId)} · {r.assignedTo ?? "—"}</span>
+                        <span style={{ fontSize: 12, opacity: 0.65 }}>{REQ_TYPE[r.type]} · {uCodes(r.unitIds)} · {r.assignedTo ?? "—"}</span>
                         <span style={{ fontSize: 11, letterSpacing: ".08em", textTransform: "uppercase", opacity: 0.55 }}>
                           {r.dueDate ? `Skiladagur ${r.dueDate}${overdue ? " · yfir tíma" : ""}` : "Enginn skiladagur"}
                         </span>

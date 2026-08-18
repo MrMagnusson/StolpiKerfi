@@ -16,10 +16,8 @@ export interface Unit {
   location: string;
   equipment: string[];
   customerId: string | null;
-  photoMottaka: string | null;
-  photoStandsett: string | null;
-  photoSkemmd: string | null;
-  photoAstand: string | null;
+  photoUti: string | null;
+  photoInni: string | null;
   coverPhotoUrl: string | null;
 }
 
@@ -93,7 +91,7 @@ export interface ServiceRequest {
   id: string;
   title: string;
   type: ReqType;
-  unitId: string | null;
+  unitIds: string[];
   projectId: string | null;
   contractId: string | null;
   status: ReqStatus;

@@ -14,7 +14,7 @@ interface DoneInfo {
 export function SimpleJobFlow({ request }: { request: VettvangurRequest }) {
   const nav = useNavigate();
   const invalidate = useRequestsInvalidate();
-  const [location, setLocation] = useState(request.unit?.location ?? "");
+  const [location, setLocation] = useState(request.units[0]?.location ?? "");
   const [note, setNote] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -37,7 +37,7 @@ export function SimpleJobFlow({ request }: { request: VettvangurRequest }) {
       await completeSimpleRequest(request.id, {
         note: note || null,
         photos,
-        location: request.unitId && location ? location : null,
+        location: request.unitIds.length && location ? location : null,
       });
       invalidate();
       setDone({ photos: photos.length });
@@ -54,7 +54,7 @@ export function SimpleJobFlow({ request }: { request: VettvangurRequest }) {
         <div className="blueprint" style={{ padding: "26px 20px", display: "flex", flexDirection: "column", gap: 14, textAlign: "center" }}>
           <div style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--color-accent-700)" }}>Verki lokið</div>
           <h1 style={{ fontSize: 26, margin: 0, lineHeight: 1.1 }}>{request.title}</h1>
-          <div style={{ fontSize: 14, opacity: 0.7, lineHeight: 1.4 }}>Beiðnin er merkt lokið{request.unitId ? " og færð í viðhaldssögu einingarinnar." : "."}</div>
+          <div style={{ fontSize: 14, opacity: 0.7, lineHeight: 1.4 }}>Beiðnin er merkt lokið{request.unitIds.length ? ` og færð í viðhaldssögu ${request.unitIds.length === 1 ? "einingarinnar" : "eininganna"}.` : "."}</div>
           {photos.length ? <div style={{ fontSize: 13.5, opacity: 0.7 }}>{photos.length} mynd{photos.length === 1 ? "" : "ir"} vistaðar</div> : null}
         </div>
         <button className="btn btn-primary" onClick={() => nav("/")} style={{ minHeight: 52, fontSize: 16 }}>
@@ -74,14 +74,14 @@ export function SimpleJobFlow({ request }: { request: VettvangurRequest }) {
           <h1 style={{ fontSize: 26, margin: 0, lineHeight: 1.1, letterSpacing: ".01em" }}>{request.title}</h1>
         </div>
         <span style={{ fontSize: 13, opacity: 0.65 }}>
-          {REQ_TYPE[request.type as ReqType]}{request.unit ? ` · ${request.unit.code}` : ""}
+          {REQ_TYPE[request.type as ReqType]}{request.units.length ? ` · ${request.units.map((u) => u.code).join(", ")}` : ""}
         </span>
       </header>
 
       <div style={{ padding: 18, display: "flex", flexDirection: "column", gap: 18 }}>
-        {request.unitId ? (
+        {request.unitIds.length ? (
           <div className="field" style={{ margin: 0 }}>
-            <label>Staðsetning einingar</label>
+            <label>{request.unitIds.length === 1 ? "Staðsetning einingar" : "Staðsetning eininga"}</label>
             <input className="input" style={{ minHeight: 46 }} value={location} onChange={(e) => setLocation(e.target.value)} placeholder="t.d. Lager RVK, verkstaður…" />
           </div>
         ) : null}

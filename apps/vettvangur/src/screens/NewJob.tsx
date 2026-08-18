@@ -22,29 +22,35 @@ export function NewJob() {
 
   const [title, setTitle] = useState("");
   const [type, setType] = useState<ReqType>("mottaka");
-  const [unitId, setUnitId] = useState("");
+  const [unitIds, setUnitIds] = useState<string[]>([]);
   const [contractId, setContractId] = useState("");
   const [priority, setPriority] = useState<Priority>("medal");
   const [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const isIntake = isIntakeReqType(type);
+  // A contract must cover every selected unit — e.g. a whole vinnubúðir camp (several units) is
+  // normally one lease, so "which contract" only makes sense once it matches the full selection.
   const unitContracts = useMemo(
-    () => contracts.filter((c) => unitId && c.unitIds.includes(unitId)),
-    [contracts, unitId],
+    () => contracts.filter((c) => unitIds.length > 0 && unitIds.every((id) => c.unitIds.includes(id))),
+    [contracts, unitIds],
   );
+  const toggleUnit = (id: string) => {
+    setUnitIds((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+    setContractId("");
+  };
 
   const submit = async () => {
     if (!title.trim()) {
       setError("Titill vantar.");
       return;
     }
-    if (isIntake && !unitId) {
-      setError("Veldu einingu sem verkið á við.");
+    if (isIntake && !unitIds.length) {
+      setError("Veldu að minnsta kosti eina einingu sem verkið á við.");
       return;
     }
     if (isIntake && !contractId) {
-      setError(unitContracts.length ? "Veldu leigusamning einingarinnar — svo skemmdir rekist á réttan samning." : "Enginn leigusamningur fannst fyrir þessa einingu — athugaðu hvort hún sé rétt valin.");
+      setError(unitContracts.length ? "Veldu leigusamning eininganna — svo skemmdir rekist á réttan samning." : "Enginn leigusamningur fannst sem nær yfir allar valdar einingar — athugaðu hvort þær séu réttar.");
       return;
     }
     setError(null);
@@ -52,7 +58,7 @@ export function NewJob() {
       const created = await create.mutateAsync({
         title: title.trim(),
         type,
-        unitId: unitId || null,
+        unitIds,
         contractId: isIntake ? contractId : null,
         priority,
         description: description.trim() || null,
@@ -103,34 +109,41 @@ export function NewJob() {
         </div>
 
         <div className="field" style={{ margin: 0 }}>
-          <label>{type === "mottaka" ? "Eining sem er að skila sér" : isIntake ? "Eining sem á að vinna" : "Eining (valfrjálst)"}</label>
-          <select
-            className="input"
-            style={{ minHeight: 46 }}
-            value={unitId}
-            onChange={(e) => {
-              setUnitId(e.target.value);
-              setContractId("");
-            }}
-          >
-            <option value="">— Engin eining —</option>
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>{u.code} · {u.sizeM2} m² · {u.location}</option>
-            ))}
-          </select>
+          <label>{type === "mottaka" ? "Einingar sem eru að skila sér" : isIntake ? "Einingar sem á að vinna" : "Einingar (valfrjálst)"}</label>
+          {unitIds.length ? (
+            <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 6 }}>{unitIds.length} valdar — t.d. heilar vinnubúðir sem innihalda margar einingar.</div>
+          ) : null}
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 260, overflowY: "auto", border: "1px solid var(--color-divider)", padding: 6 }}>
+            {units.map((u) => {
+              const checked = unitIds.includes(u.id);
+              return (
+                <button
+                  key={u.id}
+                  type="button"
+                  onClick={() => toggleUnit(u.id)}
+                  style={{ display: "flex", gap: 11, alignItems: "center", width: "100%", minHeight: 44, padding: "8px 10px", border: `1px solid ${checked ? "var(--color-accent)" : "var(--color-divider)"}`, background: checked ? "var(--color-accent-100)" : "none", cursor: "pointer", font: "inherit", color: "var(--color-text)", textAlign: "left" }}
+                >
+                  <span style={{ width: 20, height: 20, flex: "none", display: "grid", placeItems: "center", border: `1px solid ${checked ? "var(--color-accent)" : "var(--color-neutral-400)"}`, background: checked ? "var(--color-accent)" : "none", color: "var(--color-bg)", fontSize: 13 }}>
+                    {checked ? "✓" : ""}
+                  </span>
+                  <span style={{ fontSize: 13.5 }}>{u.code} · {u.sizeM2} m² · {u.location}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {isIntake ? (
           <div className="field" style={{ margin: 0 }}>
             <label>Leigusamningur</label>
-            <select className="input" style={{ minHeight: 46 }} value={contractId} onChange={(e) => setContractId(e.target.value)} disabled={!unitId}>
-              <option value="">{unitId ? "— Veldu samning —" : "— Veldu einingu fyrst —"}</option>
+            <select className="input" style={{ minHeight: 46 }} value={contractId} onChange={(e) => setContractId(e.target.value)} disabled={!unitIds.length}>
+              <option value="">{unitIds.length ? "— Veldu samning —" : "— Veldu einingu fyrst —"}</option>
               {unitContracts.map((c) => (
                 <option key={c.id} value={c.id}>{c.number}</option>
               ))}
             </select>
-            {unitId && !unitContracts.length ? (
-              <div style={{ fontSize: 12, color: "#8a6321", marginTop: 5 }}>Enginn samningur skráður með þessa einingu.</div>
+            {unitIds.length && !unitContracts.length ? (
+              <div style={{ fontSize: 12, color: "#8a6321", marginTop: 5 }}>Enginn samningur nær yfir allar valdar einingar.</div>
             ) : null}
           </div>
         ) : null}

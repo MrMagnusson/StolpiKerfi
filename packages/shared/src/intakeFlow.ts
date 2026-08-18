@@ -75,13 +75,15 @@ export const INTAKE_PHOTO_GROUP_LABELS: Record<string, string> = {
 
 const INTAKE_PHOTO_SEP = "::";
 
-/** Tags an uploaded photo URL with its group so ServiceRequest.photos (a flat string[]) can be
- * grouped back into a labeled gallery — see parseIntakePhotos. */
-export function formatIntakePhoto(group: string, url: string): string {
-  return `${group}${INTAKE_PHOTO_SEP}${url}`;
+/** Tags an uploaded photo URL with its unit + group so ServiceRequest.photos (a flat string[],
+ * shared across every unit on a multi-unit request) can be grouped back per unit and per category —
+ * see parseIntakePhotos. */
+export function formatIntakePhoto(unitId: string, group: string, url: string): string {
+  return `${unitId}${INTAKE_PHOTO_SEP}${group}${INTAKE_PHOTO_SEP}${url}`;
 }
 
 export interface IntakePhoto {
+  unitId: string;
   group: string;
   label: string;
   url: string;
@@ -89,9 +91,9 @@ export interface IntakePhoto {
 
 export function parseIntakePhotos(entries: string[]): IntakePhoto[] {
   return entries.map((e) => {
-    const idx = e.indexOf(INTAKE_PHOTO_SEP);
-    const group = idx >= 0 ? e.slice(0, idx) : "";
-    const url = idx >= 0 ? e.slice(idx + INTAKE_PHOTO_SEP.length) : e;
-    return { group, label: INTAKE_PHOTO_GROUP_LABELS[group] || "Mynd", url };
+    const parts = e.split(INTAKE_PHOTO_SEP);
+    const [unitId, group, ...rest] = parts.length >= 3 ? parts : ["", "", e];
+    const url = rest.length ? rest.join(INTAKE_PHOTO_SEP) : e;
+    return { unitId, group, label: INTAKE_PHOTO_GROUP_LABELS[group] || "Mynd", url };
   });
 }

@@ -101,7 +101,7 @@ export function fieldConfig(kind: string, refs: RefLists): FieldDef[] {
     requests: [
       { key: "title", label: "Heiti beiðni", type: "text" },
       { key: "type", label: "Tegund", type: "select", options: entOpts(REQ_TYPE) },
-      { key: "unitId", label: "Eining", type: "select", options: unit },
+      { key: "unitIds", label: "Einingar", type: "chips", options: unit },
       { key: "projectId", label: "Verkefni", type: "select", options: proj },
       { key: "contractId", label: "Leigusamningur", type: "select", options: contract },
       { key: "priority", label: "Forgangur", type: "select", options: entOpts(PRIORITY) },

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { REQ_TYPE, TONES, intakeStepsFor, isIntakeReqType, type Tone } from "@stolpi/shared";
 import { useRequests, type VettvangurRequest } from "../api.js";
-import { loadProgress } from "../progress.js";
+import { loadProgress, unitState } from "../progress.js";
 
 type FilterId = "today" | "all" | "done";
 const FILTERS: [FilterId, string][] = [
@@ -72,7 +72,10 @@ export function JobList() {
           const isIntake = isIntakeReqType(r.type);
           const steps = intakeStepsFor(r.type);
           const progress = loadProgress(r.id);
-          const at = r.status === "lokid" ? steps.length : progress.step;
+          const singleUnit = r.unitIds.length === 1;
+          const doneUnits = r.unitIds.filter((uid) => unitState(progress, uid).done).length;
+          const segments = singleUnit ? steps.length : r.unitIds.length;
+          const at = r.status === "lokid" ? segments : singleUnit ? unitState(progress, r.unitIds[0]).step : doneUnits;
           const overdue = r.dueDate && r.dueDate < today && r.status !== "lokid";
           const tone: Tone = r.status === "lokid" ? "ok" : overdue ? "bad" : r.priority === "ha" ? "warn" : "info";
           const statusLabel = r.status === "lokid" ? "Lokið" : overdue ? "Yfir tíma" : r.priority === "ha" ? "Forgangur" : "Í vinnslu";
@@ -84,22 +87,24 @@ export function JobList() {
               style={{ padding: "14px 15px", background: "none", border: 0, cursor: "pointer", textAlign: "left", font: "inherit", display: "flex", flexDirection: "column", gap: 9 }}
             >
               <span style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
-                <span style={{ fontFamily: "var(--font-heading)", fontSize: 24, letterSpacing: ".03em", lineHeight: 1 }}>{r.unit?.code ?? "—"}</span>
+                <span style={{ fontFamily: "var(--font-heading)", fontSize: 24, letterSpacing: ".03em", lineHeight: 1 }}>
+                  {r.units.length === 1 ? (r.units[0]?.code ?? "—") : `${r.units.length} einingar`}
+                </span>
                 <span className="tag" style={{ background: TONES[tone].bg, color: TONES[tone].fg }}>{statusLabel}</span>
               </span>
               <span style={{ fontSize: 15, lineHeight: 1.3 }}>{r.title}</span>
               <span style={{ fontSize: 13, opacity: 0.65 }}>
-                {REQ_TYPE[r.type as keyof typeof REQ_TYPE]} · {r.unit?.sizeM2 ? `${r.unit.sizeM2} m² · ` : ""}{r.unit?.location ?? ""}
+                {REQ_TYPE[r.type as keyof typeof REQ_TYPE]} · {r.units.length === 1 ? `${r.units[0]?.sizeM2 ? `${r.units[0].sizeM2} m² · ` : ""}${r.units[0]?.location ?? ""}` : r.units.map((u) => u.code).join(", ")}
               </span>
               {isIntake ? (
                 <>
                   <span style={{ display: "flex", gap: 5, paddingTop: 8, borderTop: "1px solid var(--color-divider)", width: "100%" }}>
-                    {steps.map((s, i) => (
-                      <span key={s.key} style={{ flex: 1, height: 6, background: i < at ? "var(--color-accent)" : "var(--color-neutral-300)" }} />
+                    {Array.from({ length: segments }).map((_, i) => (
+                      <span key={i} style={{ flex: 1, height: 6, background: i < at ? "var(--color-accent)" : "var(--color-neutral-300)" }} />
                     ))}
                   </span>
                   <span style={{ fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", opacity: 0.55 }}>
-                    {r.status === "lokid" ? "Ferli lokið" : at === 0 ? "Ekki hafið" : `Skref ${at} af ${steps.length} lokið`}
+                    {r.status === "lokid" ? "Ferli lokið" : at === 0 ? "Ekki hafið" : singleUnit ? `Skref ${at} af ${segments} lokið` : `${at} af ${segments} eininga lokið`}
                   </span>
                 </>
               ) : (

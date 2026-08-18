@@ -35,17 +35,18 @@ model Unit {
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Restrict)
 
-  // Ástandsmyndir — README.md "4 photo slots" á einingasíðunni. Slóðir frá POST /api/uploads.
-  photoMottaka   String?
-  photoStandsett String?
-  photoSkemmd    String?
-  photoAstand    String?
-  // Valin forsíðumynd (ein af myndunum fyrir ofan) sem birtist á kortinu í Einingar-yfirlitinu.
-  coverPhotoUrl  String?
+  // Núverandi ástand — bara tvær myndir (að utan/innan) svo sölumenn sjái alltaf hvernig einingin
+  // lítur út NÚNA, ekki fulla vinnsluferilssögu (sú saga lifir áfram á ServiceRequest.photos —
+  // sjá "Ástand við lok leigu" spjaldið á samningasíðunni og myndaskýrsluna á beiðnasíðunni).
+  // Fylltar sjálfkrafa úr "tilbúin"-skrefi móttökuferlisins (astand_uti/astand_inni), eða
+  // handvirkt af skrifstofu ef eining er ekki enn tilbúin en komin á lager.
+  photoUti      String?
+  photoInni     String?
+  // Fylgir photoUti sjálfkrafa — forsíðumyndin er alltaf mynd að utan.
+  coverPhotoUrl String?
 
   damages     Damage[]
   maintenance MaintenanceEntry[]
-  requests    ServiceRequest[]
 
   @@index([status])
 }
@@ -145,8 +146,9 @@ model ServiceRequest {
   id          String    @id @default(cuid())
   title       String
   type        String    @default("standsetning")
-  unitId      String?
-  unit        Unit?     @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  // Margar einingar geta verið á einni beiðni (t.d. heilar vinnubúðir skilað í einu) — því er þetta
+  // hrátt fylki af Unit-auðkennum, ekki FK-tengsl, sama mynstur og Contract.unitIds hér að neðan.
+  unitIds     String[]  @default([])
   projectId   String?
   project     Project?  @relation(fields: [projectId], references: [id], onDelete: Restrict)
   // Leigusamningur einingarinnar á móttökutíma — svo skemmdir/kostnaður sem stofnast við þessa

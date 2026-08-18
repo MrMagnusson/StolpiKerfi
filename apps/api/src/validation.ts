@@ -16,10 +16,8 @@ export const SCHEMAS: Record<string, z.AnyZodObject> = {
     location: z.string().min(1),
     equipment: z.array(z.string()).optional(),
     customerId: z.string().nullable().optional(),
-    photoMottaka: z.string().nullable().optional(),
-    photoStandsett: z.string().nullable().optional(),
-    photoSkemmd: z.string().nullable().optional(),
-    photoAstand: z.string().nullable().optional(),
+    photoUti: z.string().nullable().optional(),
+    photoInni: z.string().nullable().optional(),
     coverPhotoUrl: z.string().nullable().optional(),
   }).partial({ code: true, sizeM2: true, location: true }),
 
@@ -86,7 +84,7 @@ export const SCHEMAS: Record<string, z.AnyZodObject> = {
   requests: z.object({
     title: z.string().min(1),
     type: z.string().optional(),
-    unitId: z.string().nullable().optional(),
+    unitIds: z.array(z.string()).optional(),
     projectId: z.string().nullable().optional(),
     contractId: z.string().nullable().optional(),
     status: z.string().optional(),
