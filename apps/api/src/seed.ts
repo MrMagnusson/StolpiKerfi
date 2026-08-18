@@ -197,10 +197,10 @@ export async function seedDatabase(prisma: PrismaClient) {
   console.log("Sái skemmdum…");
   await prisma.damage.createMany({
     data: [
-      { unitId: u11.id, date: iso(-11), description: "Öryggisdyr skekktar og karmur beyglaður", cause: "flutningur", responsible: "Kranaþjónusta ehf.", projectId: p1.id, costIsk: 155_000, rebilled: true, status: "i_vidgerd" },
-      { unitId: u5.id, date: iso(-5), description: "Gólfdúkur rifinn undir vaski", cause: "vidskiptavinur", responsible: "Verkís hf. — Jón Jónsson", projectId: p1.id, costIsk: 96_000, rebilled: true, status: "skrad" },
-      { unitId: u5.id, date: iso(-40), description: "Rúða sprungin í hríð", cause: "vedur", responsible: "—", projectId: p1.id, costIsk: 74_000, rebilled: false, status: "lagfaert" },
-      { unitId: u4.id, date: iso(-70), description: "Dæld í hlið eftir lyftara", cause: "starfsmadur", responsible: "Bogi lagerstjóri", projectId: null, costIsk: 48_000, rebilled: false, status: "lagfaert" },
+      { unitId: u11.id, date: iso(-11), description: "Öryggisdyr skekktar og karmur beyglaður", cause: "flutningur", responsible: "Kranaþjónusta ehf.", projectId: p1.id, costIsk: 155_000, rebilled: true, status: "i_vidgerd", photos: ["https://picsum.photos/id/1080/900/700", "https://picsum.photos/id/1081/900/700"] },
+      { unitId: u5.id, date: iso(-5), description: "Gólfdúkur rifinn undir vaski", cause: "vidskiptavinur", responsible: "Verkís hf. — Jón Jónsson", projectId: p1.id, costIsk: 96_000, rebilled: true, status: "skrad", photos: ["https://picsum.photos/id/1074/900/700"] },
+      { unitId: u5.id, date: iso(-40), description: "Rúða sprungin í hríð", cause: "vedur", responsible: "—", projectId: p1.id, costIsk: 74_000, rebilled: false, status: "lagfaert", photos: ["https://picsum.photos/id/1069/900/700"] },
+      { unitId: u4.id, date: iso(-70), description: "Dæld í hlið eftir lyftara", cause: "starfsmadur", responsible: "Bogi lagerstjóri", projectId: null, costIsk: 48_000, rebilled: false, status: "lagfaert", photos: ["https://picsum.photos/id/1078/900/700"] },
     ],
   });
 

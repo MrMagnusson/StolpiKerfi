@@ -1,13 +1,36 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Btn, Field, Input, Select, Textarea, Chip, BlueprintBox } from "@stolpi/ui";
-import { parseIntakePhotos, type Unit } from "@stolpi/shared";
-import { fieldConfig, KIND_KICKER, KIND_DEFAULTS } from "./fieldConfig.js";
+import { norm, parseIntakePhotos, type Unit } from "@stolpi/shared";
+import { fieldConfig, KIND_KICKER, KIND_DEFAULTS, type SelectOpt } from "./fieldConfig.js";
 import { buildPanels } from "./panels.js";
 import { PhotoSlots } from "./PhotoSlots.js";
 import { PhotoLightbox, type LightboxImage } from "./PhotoLightbox.js";
 import { useCreate, useItem, useList, useRemove, useUpdate } from "../../api.js";
 import { PageHeader } from "../../layout/PageHeader.js";
+
+/** Chip-toggle field with a search box once the option list gets long (e.g. picking units out of a
+ * large fleet) — plain flex-wrap chips alone don't scale past a dozen or so options. */
+function ChipsField({ label, options, value, onChange }: { label: string; options: SelectOpt[]; value: string[]; onChange: (next: string[]) => void }) {
+  const [query, setQuery] = useState("");
+  const filtered = query ? options.filter((o) => norm(o.label).includes(norm(query))) : options;
+  return (
+    <Field label={label}>
+      {options.length > 8 ? (
+        <Input style={{ marginBottom: 8 }} placeholder="Leita…" value={query} onChange={(e) => setQuery(e.target.value)} />
+      ) : null}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {filtered.map((o) => {
+          const on = value.includes(o.value);
+          return (
+            <Chip key={o.value} label={o.label} active={on} onClick={() => onChange(on ? value.filter((x) => x !== o.value) : [...value, o.value])} />
+          );
+        })}
+        {filtered.length === 0 ? <span style={{ fontSize: 12.5, opacity: 0.6 }}>Ekkert fannst.</span> : null}
+      </div>
+    </Field>
+  );
+}
 
 export function DetailPage({ isNew }: { isNew: boolean }) {
   const { kind = "", id } = useParams();
@@ -82,7 +105,7 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
   };
 
   const kicker = KIND_KICKER[kind] || kind;
-  const title = (draft as any).code || (draft as any).name || (draft as any).title || (draft as any).subject || (draft as any).number || `Nýtt — ${kicker}`;
+  const title = (draft as any).code || (draft as any).name || (draft as any).title || (draft as any).subject || (draft as any).number || (draft as any).description || `Nýtt — ${kicker}`;
   const panels = isNew ? [] : buildPanels(kind, draft, { units, projects, damages, maintenance, requests, docs, contracts, deals, activities, contacts });
 
   const galleryTitle = kind === "requests" ? "Myndir úr móttöku" : kind === "damages" ? "Myndir af skemmd" : null;
@@ -133,21 +156,7 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
             if (f.type === "chips") {
               const list: string[] = Array.isArray(v) ? v : [];
               return (
-                <Field key={f.key} label={f.label}>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {(f.options || []).map((o) => {
-                      const on = list.includes(o.value);
-                      return (
-                        <Chip
-                          key={o.value}
-                          label={o.label}
-                          active={on}
-                          onClick={() => setField(f.key, on ? list.filter((x) => x !== o.value) : [...list, o.value])}
-                        />
-                      );
-                    })}
-                  </div>
-                </Field>
+                <ChipsField key={f.key} label={f.label} options={f.options || []} value={list} onChange={(next) => setField(f.key, next)} />
               );
             }
             return (

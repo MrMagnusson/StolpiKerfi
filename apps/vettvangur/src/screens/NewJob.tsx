@@ -4,7 +4,7 @@
 // same generic POST /api/requests the desktop uses.
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PRIORITY, REQ_TYPE, isIntakeReqType, type Priority, type ReqType } from "@stolpi/shared";
+import { PRIORITY, REQ_TYPE, isIntakeReqType, norm, type Priority, type ReqType } from "@stolpi/shared";
 import { useContracts, useCreateRequest, useUnits } from "../api.js";
 
 const TYPE_OPTIONS = Object.keys(REQ_TYPE) as ReqType[];
@@ -23,6 +23,7 @@ export function NewJob() {
   const [title, setTitle] = useState("");
   const [type, setType] = useState<ReqType>("mottaka");
   const [unitIds, setUnitIds] = useState<string[]>([]);
+  const [unitQuery, setUnitQuery] = useState("");
   const [contractId, setContractId] = useState("");
   const [priority, setPriority] = useState<Priority>("medal");
   const [description, setDescription] = useState("");
@@ -39,6 +40,10 @@ export function NewJob() {
     setUnitIds((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
     setContractId("");
   };
+  const filteredUnits = useMemo(
+    () => units.filter((u) => !unitQuery || norm(`${u.code} ${u.location}`).includes(norm(unitQuery))),
+    [units, unitQuery],
+  );
 
   const submit = async () => {
     if (!title.trim()) {
@@ -113,8 +118,18 @@ export function NewJob() {
           {unitIds.length ? (
             <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 6 }}>{unitIds.length} valdar — t.d. heilar vinnubúðir sem innihalda margar einingar.</div>
           ) : null}
+          <input
+            className="input"
+            style={{ minHeight: 42, marginBottom: 6 }}
+            value={unitQuery}
+            onChange={(e) => setUnitQuery(e.target.value)}
+            placeholder="Leita eftir einingakóða eða staðsetningu…"
+          />
           <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 260, overflowY: "auto", border: "1px solid var(--color-divider)", padding: 6 }}>
-            {units.map((u) => {
+            {filteredUnits.length === 0 ? (
+              <div style={{ padding: "10px 6px", fontSize: 13, opacity: 0.6 }}>Engin eining fannst.</div>
+            ) : null}
+            {filteredUnits.map((u) => {
               const checked = unitIds.includes(u.id);
               return (
                 <button
