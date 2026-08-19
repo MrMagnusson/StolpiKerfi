@@ -129,18 +129,20 @@ export async function seedDatabase(prisma: PrismaClient) {
   }
 
   console.log("Sái þjónustubeiðnum…");
+  // assignedTo geymir NAFN starfsmanns úr notendaskránni (ekki deildarheiti) — Vettvangur ber það
+  // saman við valinn notanda á tækinu til að sýna "Mín verk", og skrifborðið síar Beiðnir eftir því.
   await prisma.serviceRequest.createMany({
     data: [
-      { title: "Standsetning fyrir ST-102", type: "standsetning", unitIds: [u2.id], projectId: p1.id, status: "ny", priority: "ha", description: "Þrif og yfirferð fyrir útleigu.", assignedTo: "Þjónusta", dueDate: iso(-2) },
-      { title: "Viðgerð á hurð – ST-201", type: "vidgerd", unitIds: [u11.id], projectId: null, status: "i_vinnslu", priority: "ha", description: "Öryggisdyr skekktar eftir flutning.", assignedTo: "Verkstæði", dueDate: iso(3) },
-      { title: "Flutningur ST-109 norður", type: "flutningur", unitIds: [u9.id], projectId: p5.id, status: "ny", priority: "medal", description: "Keyrsla frá Akureyri á verkstað.", assignedTo: "Flutningar", dueDate: iso(8) },
-      { title: "Tenging nettengingar – ST-106", type: "annad", unitIds: [u6.id], projectId: p3.id, status: "tilbuin", priority: "lag", description: "Beðið eftir staðfestingu viðskiptavinar.", assignedTo: "Þjónusta", dueDate: iso(1) },
+      { title: "Standsetning fyrir ST-102", type: "standsetning", unitIds: [u2.id], projectId: p1.id, status: "ny", priority: "ha", description: "Þrif og yfirferð fyrir útleigu.", assignedTo: "Sigga á verkstæði", dueDate: iso(-2) },
+      { title: "Viðgerð á hurð – ST-201", type: "vidgerd", unitIds: [u11.id], projectId: null, status: "i_vinnslu", priority: "ha", description: "Öryggisdyr skekktar eftir flutning.", assignedTo: "Sigga á verkstæði", dueDate: iso(3) },
+      { title: "Flutningur ST-109 norður", type: "flutningur", unitIds: [u9.id], projectId: p5.id, status: "ny", priority: "medal", description: "Keyrsla frá Akureyri á verkstað.", assignedTo: "Bogi lagerstjóri", dueDate: iso(8) },
+      { title: "Tenging nettengingar – ST-106", type: "annad", unitIds: [u6.id], projectId: p3.id, status: "tilbuin", priority: "lag", description: "Beðið eftir staðfestingu viðskiptavinar.", assignedTo: null, dueDate: iso(1) },
       // Dæmi um margar einingar á einni beiðni — heilar vinnubúðir (2 einingar) skilað í einu.
-      { title: "Skil á vinnubúðum – Kárahnjúkar", type: "mottaka", unitIds: [u5.id, u3.id], projectId: null, status: "i_vinnslu", priority: "medal", description: "Skilamat og myndataka, 2 einingar.", assignedTo: "Lager", dueDate: iso(5) },
-      { title: "Vetrarþjónusta – ST-104", type: "annad", unitIds: [u4.id], projectId: p1.id, status: "lokid", priority: "lag", description: "Hitablásari yfirfarinn.", assignedTo: "Þjónusta", dueDate: iso(-14) },
+      { title: "Skil á vinnubúðum – Kárahnjúkar", type: "mottaka", unitIds: [u5.id, u3.id], projectId: null, status: "i_vinnslu", priority: "medal", description: "Skilamat og myndataka, 2 einingar.", assignedTo: "Bogi lagerstjóri", dueDate: iso(5) },
+      { title: "Vetrarþjónusta – ST-104", type: "annad", unitIds: [u4.id], projectId: p1.id, status: "lokid", priority: "lag", description: "Hitablásari yfirfarinn.", assignedTo: "Sigga á verkstæði", dueDate: iso(-14) },
       // Sýnidæmi fyrir afhendingar-skrefið — ST-107 er þegar frátekin fyrir p3/c3 (sjá að ofan),
       // beðið er eftir að Vettvangur staðfesti afhendingu + lyklaskil á staðnum.
-      { title: "Afhending – ST-107 til Ístaks Verkfr.", type: "afhending", unitIds: [u7.id], projectId: p3.id, contractId: null, status: "ny", priority: "medal", description: "Afhenda einingu á verkstað og staðfesta lyklaskil.", assignedTo: "Lager", dueDate: iso(2) },
+      { title: "Afhending – ST-107 til Ístaks Verkfr.", type: "afhending", unitIds: [u7.id], projectId: p3.id, contractId: null, status: "ny", priority: "medal", description: "Afhenda einingu á verkstað og staðfesta lyklaskil.", assignedTo: "Bogi lagerstjóri", dueDate: iso(2) },
     ],
   });
 

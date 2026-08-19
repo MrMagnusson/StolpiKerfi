@@ -102,6 +102,7 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
   const { data: contracts = [] } = useList<any>("contracts");
   const { data: deals = [] } = useList<any>("deals");
   const { data: activities = [] } = useList<any>("activities");
+  const { data: users = [] } = useList<any>("users");
 
   const create = useCreate<any>(kind);
   const update = useUpdate<any>(kind);
@@ -149,7 +150,7 @@ export function DetailPage({ isNew }: { isNew: boolean }) {
       }
       return next;
     });
-  const fields = fieldConfig(kind, { customers, projects, units, contacts, contracts });
+  const fields = fieldConfig(kind, { customers, projects, units, contacts, contracts, users });
   const viewMode = isReadOnlyKind && !isNew && !editing;
 
   const save = async () => {

@@ -244,7 +244,10 @@ export function JobFlow() {
           </div>
         </div>
         <button className="btn btn-primary" onClick={() => nav("/")} style={{ minHeight: 52, fontSize: 16 }}>
-          Aftur í verk dagsins
+          Aftur á forsíðu
+        </button>
+        <button className="btn btn-secondary" onClick={() => nav("/verk")} style={{ minHeight: 48, fontSize: 15 }}>
+          Verk dagsins
         </button>
       </section>
     );
@@ -278,7 +281,7 @@ export function JobFlow() {
     return (
       <section style={{ display: "flex", flexDirection: "column", minHeight: 844, paddingBottom: 110 }}>
         <header style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--color-bg)", borderBottom: "1px solid var(--color-divider)", padding: "16px 18px 12px" }}>
-          <button className="btn btn-ghost" onClick={() => nav("/")} style={{ padding: 0, marginBottom: 8 }}>
+          <button className="btn btn-ghost" onClick={() => nav("/verk")} style={{ padding: 0, marginBottom: 8 }}>
             ← Verk dagsins
           </button>
           <h1 style={{ fontSize: 26, margin: 0, lineHeight: 1.1 }}>{request.title}</h1>
@@ -313,7 +316,7 @@ export function JobFlow() {
   return (
     <section style={{ display: "flex", flexDirection: "column", minHeight: 844, paddingBottom: 132 }}>
       <header style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--color-bg)", borderBottom: "1px solid var(--color-divider)", padding: "16px 18px 12px" }}>
-        <button className="btn btn-ghost" onClick={() => nav("/")} style={{ padding: 0, marginBottom: 8 }}>
+        <button className="btn btn-ghost" onClick={() => nav("/verk")} style={{ padding: 0, marginBottom: 8 }}>
           ← Verk dagsins
         </button>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>

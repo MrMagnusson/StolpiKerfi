@@ -71,6 +71,17 @@ export function useContracts() {
   return useQuery({ queryKey: ["vettvangur-contracts"], queryFn: () => request<VettvangurContract[]>("/contracts") });
 }
 
+export interface VettvangurUser {
+  id: string;
+  name: string;
+  role: string;
+  active: boolean;
+}
+
+export function useUsers() {
+  return useQuery({ queryKey: ["vettvangur-users"], queryFn: () => request<VettvangurUser[]>("/users") });
+}
+
 export interface NewRequestPayload {
   title: string;
   type: string;

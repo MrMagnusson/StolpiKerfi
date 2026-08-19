@@ -5,7 +5,8 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PRIORITY, REQ_TYPE, isIntakeReqType, norm, type Priority, type ReqType } from "@stolpi/shared";
-import { useContracts, useCreateRequest, useUnits } from "../api.js";
+import { useContracts, useCreateRequest, useUnits, useUsers } from "../api.js";
+import { loadUser } from "../user.js";
 
 const TYPE_OPTIONS = Object.keys(REQ_TYPE) as ReqType[];
 const PRIORITY_OPTIONS = Object.keys(PRIORITY) as Priority[];
@@ -18,6 +19,7 @@ export function NewJob() {
   const nav = useNavigate();
   const { data: units = [] } = useUnits();
   const { data: contracts = [] } = useContracts();
+  const { data: users = [] } = useUsers();
   const create = useCreateRequest();
 
   const [title, setTitle] = useState("");
@@ -27,6 +29,8 @@ export function NewJob() {
   const [contractId, setContractId] = useState("");
   const [priority, setPriority] = useState<Priority>("medal");
   const [description, setDescription] = useState("");
+  // Sjálfgefið á þann sem er skráður á tækið — má breyta ef verkið er stofnað fyrir annan.
+  const [assignedTo, setAssignedTo] = useState(loadUser() ?? "");
   const [error, setError] = useState<string | null>(null);
 
   const isIntake = isIntakeReqType(type);
@@ -71,7 +75,7 @@ export function NewJob() {
         contractId: showContractPicker && contractId ? contractId : null,
         priority,
         description: description.trim() || null,
-        assignedTo: null,
+        assignedTo: assignedTo || null,
         dueDate: todayIso(),
       });
       nav(`/verk/${created.id}`);
@@ -83,7 +87,7 @@ export function NewJob() {
   return (
     <section style={{ display: "flex", flexDirection: "column", minHeight: 844, paddingBottom: 110 }}>
       <header style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--color-bg)", borderBottom: "1px solid var(--color-divider)", padding: "16px 18px 12px" }}>
-        <button className="btn btn-ghost" onClick={() => nav("/")} style={{ padding: 0, marginBottom: 8 }}>
+        <button className="btn btn-ghost" onClick={() => nav("/verk")} style={{ padding: 0, marginBottom: 8 }}>
           ← Verk dagsins
         </button>
         <h1 style={{ fontSize: 26, margin: 0, lineHeight: 1.1 }}>Nýtt verk</h1>
@@ -166,6 +170,16 @@ export function NewJob() {
             ) : null}
           </div>
         ) : null}
+
+        <div className="field" style={{ margin: 0 }}>
+          <label>Ábyrgð</label>
+          <select className="input" style={{ minHeight: 46 }} value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)}>
+            <option value="">— óúthlutað —</option>
+            {users.filter((u) => u.active).map((u) => (
+              <option key={u.id} value={u.name}>{u.name}</option>
+            ))}
+          </select>
+        </div>
 
         <div className="field" style={{ margin: 0 }}>
           <label>Forgangur</label>

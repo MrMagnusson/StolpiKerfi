@@ -29,6 +29,7 @@ export interface RefLists {
   units: { id: string; code: string }[];
   contacts: { id: string; name: string }[];
   contracts: { id: string; number: string }[];
+  users: { id: string; name: string; active: boolean }[];
 }
 
 export function fieldConfig(kind: string, refs: RefLists): FieldDef[] {
@@ -37,6 +38,9 @@ export function fieldConfig(kind: string, refs: RefLists): FieldDef[] {
   const unit: SelectOpt[] = refs.units.map((u) => ({ value: u.id, label: u.code }));
   const cont: SelectOpt[] = refs.contacts.map((c) => ({ value: c.id, label: c.name }));
   const contract: SelectOpt[] = refs.contracts.map((c) => ({ value: c.id, label: c.number }));
+  // Ábyrgð á beiðni er nafn starfsmanns (ekki FK) — Vettvangur ber það saman við valinn notanda
+  // á tækinu til að sýna "Mín verk", svo listinn þarf að vera úr sömu notendaskrá.
+  const staff: SelectOpt[] = [{ value: "", label: "— óúthlutað —" }, ...refs.users.filter((u) => u.active).map((u) => ({ value: u.name, label: u.name }))];
 
   const table: Record<string, FieldDef[]> = {
     units: [
@@ -107,7 +111,7 @@ export function fieldConfig(kind: string, refs: RefLists): FieldDef[] {
       { key: "contractId", label: "Leigusamningur", type: "select", options: contract },
       { key: "priority", label: "Forgangur", type: "select", options: entOpts(PRIORITY) },
       { key: "status", label: "Staða", type: "select", options: toneEntOpts(REQ_STATUS) },
-      { key: "assignedTo", label: "Ábyrgð", type: "text" },
+      { key: "assignedTo", label: "Ábyrgð", type: "select", options: staff },
       { key: "dueDate", label: "Skiladagur", type: "date" },
       { key: "description", label: "Lýsing", type: "textarea" },
     ],

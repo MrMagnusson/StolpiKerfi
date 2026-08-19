@@ -1,16 +1,12 @@
 // Ported from Screen A "Verk dagsins", Stólpi Vettvangur.dc.html lines 22-61 & 329-352.
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { REQ_TYPE, TONES, intakeStepsFor, isIntakeReqType, type Tone } from "@stolpi/shared";
 import { useRequests, type VettvangurRequest } from "../api.js";
 import { loadProgress, unitState } from "../progress.js";
+import { loadUser } from "../user.js";
 
-type FilterId = "today" | "all" | "done";
-const FILTERS: [FilterId, string][] = [
-  ["today", "Í dag"],
-  ["all", "Allar opnar"],
-  ["done", "Lokið"],
-];
+type FilterId = "mine" | "today" | "all" | "done";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -18,32 +14,46 @@ function todayIso() {
 
 export function JobList() {
   const { data: requests = [], isLoading } = useRequests();
-  const [filter, setFilter] = useState<FilterId>("today");
+  const [params] = useSearchParams();
+  const user = loadUser();
+  const [filter, setFilter] = useState<FilterId>(params.get("minn") && user ? "mine" : "today");
   const nav = useNavigate();
   const today = todayIso();
 
   const open = requests.filter((r) => r.status === "ny" || r.status === "i_vinnslu");
   const sets: Record<FilterId, VettvangurRequest[]> = {
+    mine: user ? open.filter((r) => r.assignedTo === user) : [],
     today: open.filter((r) => !r.dueDate || r.dueDate <= today),
     all: open,
     done: requests.filter((r) => r.status === "lokid" || r.status === "tilbuin"),
   };
+  const filters: [FilterId, string][] = [
+    ...(user ? ([["mine", "Mín verk"]] as [FilterId, string][]) : []),
+    ["today", "Í dag"],
+    ["all", "Allar opnar"],
+    ["done", "Lokið"],
+  ];
   const list = sets[filter];
 
   return (
     <section style={{ display: "flex", flexDirection: "column", minHeight: 844 }}>
-      <header style={{ padding: "20px 18px 14px", borderBottom: "1px solid var(--color-divider)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        <div>
-          <div style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--color-accent-700)" }}>Stólpi · Vettvangur</div>
-          <h1 style={{ fontSize: 27, margin: "3px 0 0", lineHeight: 1 }}>Verk dagsins</h1>
-        </div>
-        <div className="blueprint" style={{ width: 38, height: 38, flex: "none", display: "grid", placeItems: "center", fontFamily: "var(--font-heading)", fontSize: 14 }}>
-          SV
+      <header style={{ padding: "16px 18px 14px", borderBottom: "1px solid var(--color-divider)" }}>
+        <button className="btn btn-ghost" onClick={() => nav("/")} style={{ padding: 0, marginBottom: 8 }}>
+          ← Forsíða
+        </button>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--color-accent-700)" }}>Stólpi · Vettvangur</div>
+            <h1 style={{ fontSize: 27, margin: "3px 0 0", lineHeight: 1 }}>Verk dagsins</h1>
+          </div>
+          <div className="blueprint" style={{ width: 38, height: 38, flex: "none", display: "grid", placeItems: "center", fontFamily: "var(--font-heading)", fontSize: 14 }}>
+            {user ? user.split(" ").map((p) => p[0]).slice(0, 2).join("") : "SV"}
+          </div>
         </div>
       </header>
 
       <div style={{ display: "flex", gap: 8, padding: "14px 18px 4px", overflowX: "auto" }}>
-        {FILTERS.map(([id, label]) => {
+        {filters.map(([id, label]) => {
           const active = filter === id;
           return (
             <button
@@ -96,6 +106,9 @@ export function JobList() {
               <span style={{ fontSize: 13, opacity: 0.65 }}>
                 {REQ_TYPE[r.type as keyof typeof REQ_TYPE]} · {r.units.length === 1 ? `${r.units[0]?.sizeM2 ? `${r.units[0].sizeM2} m² · ` : ""}${r.units[0]?.location ?? ""}` : r.units.map((u) => u.code).join(", ")}
               </span>
+              {r.assignedTo ? (
+                <span style={{ fontSize: 12.5, opacity: 0.6 }}>Ábyrgð: {r.assignedTo}</span>
+              ) : null}
               {isIntake ? (
                 <>
                   <span style={{ display: "flex", gap: 5, paddingTop: 8, borderTop: "1px solid var(--color-divider)", width: "100%" }}>
