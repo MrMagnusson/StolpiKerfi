@@ -39,8 +39,9 @@ export function fieldConfig(kind: string, refs: RefLists): FieldDef[] {
   const cont: SelectOpt[] = refs.contacts.map((c) => ({ value: c.id, label: c.name }));
   const contract: SelectOpt[] = refs.contracts.map((c) => ({ value: c.id, label: c.number }));
   // Ábyrgð á beiðni er nafn starfsmanns (ekki FK) — Vettvangur ber það saman við valinn notanda
-  // á tækinu til að sýna "Mín verk", svo listinn þarf að vera úr sömu notendaskrá.
-  const staff: SelectOpt[] = [{ value: "", label: "— óúthlutað —" }, ...refs.users.filter((u) => u.active).map((u) => ({ value: u.name, label: u.name }))];
+  // á tækinu til að sýna "Mín verk", svo listinn þarf að vera úr sömu notendaskrá. Select-þátturinn
+  // bætir sjálfur við tómum "— veldu —" valmöguleika fyrir óúthlutaðar beiðnir.
+  const staff: SelectOpt[] = refs.users.filter((u) => u.active).map((u) => ({ value: u.name, label: u.name }));
 
   const table: Record<string, FieldDef[]> = {
     units: [

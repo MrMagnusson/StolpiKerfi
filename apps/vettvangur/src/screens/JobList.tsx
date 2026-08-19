@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { REQ_TYPE, TONES, intakeStepsFor, isIntakeReqType, type Tone } from "@stolpi/shared";
 import { useRequests, type VettvangurRequest } from "../api.js";
 import { loadProgress, unitState } from "../progress.js";
-import { loadUser } from "../user.js";
+import { loadUser, initials } from "../user.js";
 
 type FilterId = "mine" | "today" | "all" | "done";
 
@@ -47,7 +47,7 @@ export function JobList() {
             <h1 style={{ fontSize: 27, margin: "3px 0 0", lineHeight: 1 }}>Verk dagsins</h1>
           </div>
           <div className="blueprint" style={{ width: 38, height: 38, flex: "none", display: "grid", placeItems: "center", fontFamily: "var(--font-heading)", fontSize: 14 }}>
-            {user ? user.split(" ").map((p) => p[0]).slice(0, 2).join("") : "SV"}
+            {user ? initials(user) : "SV"}
           </div>
         </div>
       </header>

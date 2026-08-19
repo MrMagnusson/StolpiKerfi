@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRequests, useUsers } from "../api.js";
-import { loadUser, saveUser, clearUser } from "../user.js";
+import { loadUser, saveUser, clearUser, initials } from "../user.js";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -50,7 +50,7 @@ export function Home() {
               style={{ padding: "16px 17px", background: "none", border: 0, cursor: "pointer", textAlign: "left", font: "inherit", display: "flex", alignItems: "center", gap: 13 }}
             >
               <span style={{ width: 40, height: 40, flex: "none", display: "grid", placeItems: "center", border: "1px solid var(--color-divider)", fontFamily: "var(--font-heading)", fontSize: 15 }}>
-                {u.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
+                {initials(u.name)}
               </span>
               <span style={{ fontSize: 16 }}>{u.name}</span>
             </button>
@@ -78,7 +78,7 @@ export function Home() {
           title="Skipta um notanda"
           style={{ width: 42, height: 42, flex: "none", display: "grid", placeItems: "center", fontFamily: "var(--font-heading)", fontSize: 14, background: "none", border: 0, cursor: "pointer", color: "var(--color-text)" }}
         >
-          {user.split(" ").map((p) => p[0]).slice(0, 2).join("")}
+          {initials(user)}
         </button>
       </header>
 
